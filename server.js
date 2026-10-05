@@ -10,10 +10,14 @@ app.use(express.static("."));
 
 const db = new Database("bendigo.db");
 db.pragma("journal_mode = WAL");
-db.exec("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_chats_session ON chats(session_id, id);");
+db.exec("CREATE TABLE IF NOT EXISTS conversations (session_id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_chats_session ON chats(session_id, id); CREATE INDEX IF NOT EXISTS idx_conversations_updated ON conversations(updated_at DESC);");
 const saveMessage = db.prepare("INSERT INTO chats (session_id, role, content) VALUES (?, ?, ?)");
 const getMessages = db.prepare("SELECT role, content, created_at FROM chats WHERE session_id = ? ORDER BY id ASC LIMIT 100");
 const clearMessages = db.prepare("DELETE FROM chats WHERE session_id = ?");
+const createConversation = db.prepare("INSERT OR IGNORE INTO conversations (session_id, title) VALUES (?, ?)");
+const updateConversation = db.prepare("UPDATE conversations SET updated_at = CURRENT_TIMESTAMP WHERE session_id = ?");
+const getConversations = db.prepare("SELECT session_id, title, created_at, updated_at FROM conversations ORDER BY updated_at DESC LIMIT 50");
+const deleteConversation = db.prepare("DELETE FROM conversations WHERE session_id = ?");
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 const AI_INSTRUCTIONS = "You are Bendigo AI, a friendly and helpful assistant inside the Bendigo Website. Explain things clearly for a young learner, especially coding, websites, games, school subjects, creativity, and general questions. Be honest when you do not know something. Never claim to have performed an action you cannot perform.";
@@ -145,6 +149,8 @@ app.post("/api/chat", async (req, res) => {
     return res.status(400).json({ error: "Please enter a message." });
   }
 
+  createConversation.run(sessionId, message.trim().replace(/\s+/g, " ").slice(0, 48) || "New chat");
+  updateConversation.run(sessionId);
   saveMessage.run(sessionId, "user", message);
 
   if (openai) {
@@ -160,7 +166,10 @@ app.post("/api/chat", async (req, res) => {
         input
       });
 
-      return res.json({ reply: response.output_text || "I couldn't generate a response right now." });
+      const reply = response.output_text || "I couldn't generate a response right now.";
+      saveMessage.run(sessionId, "assistant", reply);
+      updateConversation.run(sessionId);
+      return res.json({ reply });
     } catch (error) {
       console.error("Bendigo AI error:", error.message);
       return res.status(502).json({ error: "Bendigo AI could not reach the AI service. Check the server API configuration." });
@@ -176,5 +185,7 @@ app.listen(port, () => {
   console.log(`Bendigo AI is running on port ${port}`);
 });
 
+app.get("/api/chat/conversations", (req, res) => { res.json({ conversations: getConversations.all() }); });
+app.delete("/api/chat/conversations/:sessionId", (req, res) => { const sessionId = typeof req.params.sessionId === "string" ? req.params.sessionId.trim().slice(0, 100) : ""; if (!sessionId) return res.status(400).json({ error: "A chat session is required." }); clearMessages.run(sessionId); deleteConversation.run(sessionId); res.json({ ok: true }); });
 app.get("/api/chat/history", (req, res) => { const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId.trim().slice(0, 100) : ""; if (!sessionId) return res.status(400).json({ error: "A chat session is required." }); res.json({ messages: getMessages.all(sessionId) }); });
 app.delete("/api/chat/history", (req, res) => { const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId.trim().slice(0, 100) : ""; if (!sessionId) return res.status(400).json({ error: "A chat session is required." }); clearMessages.run(sessionId); res.json({ ok: true }); });
