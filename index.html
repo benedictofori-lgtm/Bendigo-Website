@@ -1,102 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bendigo Website - AI, Code Lab & Games</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bendigo Website - AI, Code Lab & Games</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">🤖</div>
-        <div>
-          <strong>Bendigo AI</strong>
-          <span>Assistant</span>
-        </div>
-      </div>
+<main class="app">
+<aside class="sidebar">
+<div class="brand"><div class="logo">🤖</div><div><strong>Bendigo AI</strong><span>Assistant</span></div></div>
+<button id="newChatButton" class="side-button">＋ New Chat</button>
+<div class="side-section"><p>MENU</p><button id="historyButton" class="side-link">🕘 Chat History</button><button id="settingsButton" class="side-link">⚙️ Settings</button><button id="aboutButton" class="side-link">ℹ️ About Bendigo</button></div>
+<div class="sidebar-bottom"><span>● Online</span><small>No API key required</small></div>
+</aside>
 
-      <button id="newChatButton" class="side-button">＋ New Chat</button>
+<section class="main-chat">
+<header><div class="header-logo">🤖</div><div><h1>Bendigo AI</h1><p>AI assistant + coding lab + games</p></div></header>
+<section id="chat" class="chat"><div class="message ai">Hello! I'm Bendigo AI. How can I help you today? 👋</div></section>
+<div class="input-area"><input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off"><button id="voiceButton" type="button">🎤</button><button id="sendButton" type="button">Send</button></div>
+<p id="voiceStatus" class="voice-status"></p><button id="clearButton" class="clear" type="button">Clear chat</button>
 
-      <div class="side-section">
-        <p>MENU</p>
-        <button id="historyButton" class="side-link">🕘 Chat History</button>
-        <button id="settingsButton" class="side-link">⚙️ Settings</button>
-        <button id="aboutButton" class="side-link">ℹ️ About Bendigo</button>
-      </div>
+<section class="game-lab">
+<div class="game-header"><div><h2>🏎️ Bendigo Racing</h2><p>Use ← → or A/D to move. Avoid the cars!</p></div><div class="game-score">Score: <span id="gameScore">0</span></div></div>
+<div id="gameArea" class="game-area" tabindex="0"><div class="road-line line-one"></div><div class="road-line line-two"></div><div id="playerCar" class="car player-car">🚗</div><div id="enemyCar" class="car enemy-car">🚙</div><div id="gameMessage" class="game-message">Press Start Race</div></div>
+<div class="game-controls"><button id="startGameButton" type="button">🏁 Start Race</button><button id="leftButton" type="button">⬅️</button><button id="rightButton" type="button">➡️</button></div>
+</section>
 
-      <div class="sidebar-bottom">
-        <span>● Online</span>
-        <small>No API key required</small>
-      </div>
-    </aside>
+<section class="fight-lab">
+<div class="game-header"><div><h2>🥊 Bendigo Fighter</h2><p>Move with A/D. Attack with Space. Defend with S.</p></div><div class="fight-health"><span>YOU</span><div class="health"><i id="playerHealth"></i></div><span>CPU</span><div class="health"><i id="cpuHealth"></i></div></div></div>
+<div id="fightArena" class="fight-arena" tabindex="0"><div class="fighter player-fighter" id="playerFighter">🥊</div><div class="fighter cpu-fighter" id="cpuFighter">🤖</div><div id="fightMessage" class="fight-message">Press Start Fight</div></div>
+<div class="fight-controls"><button id="startFightButton" type="button">🥊 Start Fight</button><button id="attackButton" type="button">👊 Attack</button><button id="defendButton" type="button">🛡️ Defend</button></div>
+</section>
 
-    <section class="main-chat">
-      <header>
-        <div class="header-logo">🤖</div>
-        <div>
-          <h1>Bendigo AI</h1>
-          <p>AI assistant + coding lab + games</p>
-        </div>
-      </header>
-
-      <section id="chat" class="chat">
-        <div class="message ai">Hello! I'm Bendigo AI. How can I help you today? 👋</div>
-      </section>
-
-      <div class="input-area">
-        <input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off">
-        <button id="voiceButton" type="button" title="Speak">🎤</button>
-        <button id="sendButton" type="button">Send</button>
-      </div>
-
-      <p id="voiceStatus" class="voice-status"></p>
-      <button id="clearButton" class="clear" type="button">Clear chat</button>
-
-      <section class="game-lab">
-        <div class="game-header">
-          <div>
-            <h2>🏎️ Bendigo Racing</h2>
-            <p>Use ← → or A/D to move. Avoid the cars!</p>
-          </div>
-          <div class="game-score">Score: <span id="gameScore">0</span></div>
-        </div>
-
-        <div id="gameArea" class="game-area" tabindex="0">
-          <div class="road-line line-one"></div>
-          <div class="road-line line-two"></div>
-          <div id="playerCar" class="car player-car">🚗</div>
-          <div id="enemyCar" class="car enemy-car">🚙</div>
-          <div id="gameMessage" class="game-message">Press Start Race</div>
-        </div>
-
-        <div class="game-controls">
-          <button id="startGameButton" type="button">🏁 Start Race</button>
-          <button id="leftButton" type="button">⬅️</button>
-          <button id="rightButton" type="button">➡️</button>
-        </div>
-      </section>
-
-      <section class="code-lab">
-        <div class="code-lab-header">
-          <div>
-            <h2>💻 Bendigo Code Lab</h2>
-            <p>Write HTML, CSS and JavaScript, then run it instantly.</p>
-          </div>
-          <button id="runCodeButton" type="button">▶ Run Code</button>
-        </div>
-
-        <div class="editor-grid">
-          <div class="editor-box">
-            <label for="htmlCode">HTML</label>
-            <textarea id="htmlCode" spellcheck="false"><h2>Hello Bendigo! 👋</h2>
+<section class="code-lab">
+<div class="code-lab-header"><div><h2>💻 Bendigo Code Lab</h2><p>Write HTML, CSS and JavaScript, then run it instantly.</p></div><button id="runCodeButton" type="button">▶ Run Code</button></div>
+<div class="editor-grid">
+<div class="editor-box"><label for="htmlCode">HTML</label><textarea id="htmlCode" spellcheck="false"><h2>Hello Bendigo! 👋</h2>
 <p>My first webpage is working.</p>
-<button onclick="sayHello()">Click Me</button></textarea>
-          </div>
-          <div class="editor-box">
-            <label for="cssCode">CSS</label>
-            <textarea id="cssCode" spellcheck="false">body {
+<button onclick="sayHello()">Click Me</button></textarea></div>
+<div class="editor-box"><label for="cssCode">CSS</label><textarea id="cssCode" spellcheck="false">body {
   font-family: Arial, sans-serif;
   padding: 25px;
   text-align: center;
@@ -106,21 +49,15 @@ button {
   border: 0;
   border-radius: 8px;
   cursor: pointer;
-}</textarea>
-          </div>
-          <div class="editor-box">
-            <label for="jsCode">JavaScript</label>
-            <textarea id="jsCode" spellcheck="false">function sayHello() {
+}</textarea></div>
+<div class="editor-box"><label for="jsCode">JavaScript</label><textarea id="jsCode" spellcheck="false">function sayHello() {
   alert("Hello from Bendigo Code Lab!");
-}</textarea>
-          </div>
-        </div>
-
-        <div class="preview-title">Live Preview</div>
-        <iframe id="codePreview" title="Code preview" sandbox="allow-scripts"></iframe>
-      </section>
-    </section>
-  </main>
-  <script src="script.js"></script>
+}</textarea></div>
+</div>
+<div class="preview-title">Live Preview</div><iframe id="codePreview" title="Code preview" sandbox="allow-scripts"></iframe>
+</section>
+</section>
+</main>
+<script src="script.js"></script>
 </body>
 </html>
