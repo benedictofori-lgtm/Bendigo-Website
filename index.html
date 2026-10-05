@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bendigo Website - AI Chatbot & Code Lab</title>
+  <title>Bendigo Website - AI, Code Lab & Games</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -37,7 +37,7 @@
         <div class="header-logo">🤖</div>
         <div>
           <h1>Bendigo AI</h1>
-          <p>Your simple AI chatbot + coding lab</p>
+          <p>AI assistant + coding lab + games</p>
         </div>
       </header>
 
@@ -53,6 +53,30 @@
 
       <p id="voiceStatus" class="voice-status"></p>
       <button id="clearButton" class="clear" type="button">Clear chat</button>
+
+      <section class="game-lab">
+        <div class="game-header">
+          <div>
+            <h2>🏎️ Bendigo Racing</h2>
+            <p>Use ← → or A/D to move. Avoid the cars!</p>
+          </div>
+          <div class="game-score">Score: <span id="gameScore">0</span></div>
+        </div>
+
+        <div id="gameArea" class="game-area" tabindex="0">
+          <div class="road-line line-one"></div>
+          <div class="road-line line-two"></div>
+          <div id="playerCar" class="car player-car">🚗</div>
+          <div id="enemyCar" class="car enemy-car">🚙</div>
+          <div id="gameMessage" class="game-message">Press Start Race</div>
+        </div>
+
+        <div class="game-controls">
+          <button id="startGameButton" type="button">🏁 Start Race</button>
+          <button id="leftButton" type="button">⬅️</button>
+          <button id="rightButton" type="button">➡️</button>
+        </div>
+      </section>
 
       <section class="code-lab">
         <div class="code-lab-header">
@@ -70,7 +94,6 @@
 <p>My first webpage is working.</p>
 <button onclick="sayHello()">Click Me</button></textarea>
           </div>
-
           <div class="editor-box">
             <label for="cssCode">CSS</label>
             <textarea id="cssCode" spellcheck="false">body {
@@ -85,7 +108,6 @@ button {
   cursor: pointer;
 }</textarea>
           </div>
-
           <div class="editor-box">
             <label for="jsCode">JavaScript</label>
             <textarea id="jsCode" spellcheck="false">function sayHello() {
