@@ -92,10 +92,11 @@ if(studioButton) studioButton.addEventListener("click",()=>{designStudio.scrollI
 if(historyButton) historyButton.addEventListener("click",async()=>{await loadConversations();conversationList?.scrollIntoView({behavior:"smooth",block:"nearest"});setActiveNav(historyButton)});
 if(settingsButton) settingsButton.addEventListener("click",()=>{addMessage("Settings: 🎤 Voice input and 🔊 spoken replies are enabled. You can use Bendigo AI without an API key when the local fallback is available.","ai");goToWorkspace("chat");setActiveNav(settingsButton)});
 if(aboutButton) aboutButton.addEventListener("click",()=>{addMessage("Bendigo AI is your workspace for AI chat, coding, design, and games. Music Studio has been removed.","ai");goToWorkspace("chat");setActiveNav(aboutButton)});
+document.querySelectorAll("[data-builder]").forEach(btn=>btn.addEventListener("click",()=>{const type=btn.dataset.builder;const prompts={website:"Help me build a modern website step by step.",game:"Help me build a playable game step by step.",python:"Help me start a Python project step by step.",design:"Help me create a visual design project step by step."};input.value=prompts[type]||"Help me build a project.";goToWorkspace("chat");input.focus();sendMessage() }));
 const sidebarWorkspaceLinks=document.querySelector(".sidebar-workspace-links");
 const builderButton=document.createElement("button");
 builderButton.type="button";builderButton.className="side-link";builderButton.textContent="✦ Builder";
-builderButton.addEventListener("click",()=>{goToWorkspace("codeLab");setActiveNav(builderButton)});
+builderButton.addEventListener("click",()=>{goToWorkspace("builder");setActiveNav(builderButton)});
 const workspaceButton=document.createElement("button");
 workspaceButton.type="button";workspaceButton.className="side-link";workspaceButton.textContent="▣ Workspace";
 workspaceButton.addEventListener("click",()=>{goToWorkspace("chat");setActiveNav(workspaceButton)});
