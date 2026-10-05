@@ -21,11 +21,14 @@
     </section>
 
     <div class="input-area">
-      <input id="userInput" type="text" placeholder="Type your message..." autocomplete="off">
-      <button id="sendButton">Send</button>
+      <input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off">
+      <button id="voiceButton" type="button" title="Speak">🎤</button>
+      <button id="sendButton" type="button">Send</button>
     </div>
 
-    <button id="clearButton" class="clear">Clear chat</button>
+    <p id="voiceStatus" class="voice-status"></p>
+
+    <button id="clearButton" class="clear" type="button">Clear chat</button>
   </main>
   <script src="script.js"></script>
 </body>
