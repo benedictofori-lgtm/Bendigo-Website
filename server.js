@@ -1,11 +1,19 @@
 import express from "express";
 import OpenAI from "openai";
+import Database from "better-sqlite3";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static("."));
+
+const db = new Database("bendigo.db");
+db.pragma("journal_mode = WAL");
+db.exec("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_chats_session ON chats(session_id, id);");
+const saveMessage = db.prepare("INSERT INTO chats (session_id, role, content) VALUES (?, ?, ?)");
+const getMessages = db.prepare("SELECT role, content, created_at FROM chats WHERE session_id = ? ORDER BY id ASC LIMIT 100");
+const clearMessages = db.prepare("DELETE FROM chats WHERE session_id = ?");
 
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 const AI_INSTRUCTIONS = "You are Bendigo AI, a friendly and helpful assistant inside the Bendigo Website. Explain things clearly for a young learner, especially coding, websites, games, school subjects, creativity, and general questions. Be honest when you do not know something. Never claim to have performed an action you cannot perform.";
@@ -129,11 +137,15 @@ function getAIResponse(text, history = []) {
 
 app.post("/api/chat", async (req, res) => {
   const message = req.body?.message;
+  const sessionId = typeof req.body?.sessionId === "string" && req.body.sessionId.trim() ? req.body.sessionId.trim().slice(0, 100) : null;
+  if (!sessionId) return res.status(400).json({ error: "A chat session is required." });
   const history = Array.isArray(req.body?.history) ? req.body.history.slice(-10) : [];
 
   if (typeof message !== "string" || !message.trim()) {
     return res.status(400).json({ error: "Please enter a message." });
   }
+
+  saveMessage.run(sessionId, "user", message);
 
   if (openai) {
     try {
@@ -155,9 +167,14 @@ app.post("/api/chat", async (req, res) => {
     }
   }
 
-  res.json({ reply: getAIResponse(message, history) });
+  const reply = getAIResponse(message, history);
+  saveMessage.run(sessionId, "assistant", reply);
+  res.json({ reply });
 });
 
 app.listen(port, () => {
   console.log(`Bendigo AI is running on port ${port}`);
 });
+
+app.get("/api/chat/history", (req, res) => { const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId.trim().slice(0, 100) : ""; if (!sessionId) return res.status(400).json({ error: "A chat session is required." }); res.json({ messages: getMessages.all(sessionId) }); });
+app.delete("/api/chat/history", (req, res) => { const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId.trim().slice(0, 100) : ""; if (!sessionId) return res.status(400).json({ error: "A chat session is required." }); clearMessages.run(sessionId); res.json({ ok: true }); });
