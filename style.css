@@ -601,3 +601,19 @@ header h1{font-size:17px;letter-spacing:-.3px}
   .workspace-stats{grid-template-columns:repeat(2,1fr)}
   .workspace-ai{display:none}
 }
+
+
+/* GitHub repository panel */
+.github-panel{margin:14px 20px 10px;padding:20px;border:1px solid rgba(62,132,255,.28);border-radius:12px;background:rgba(4,17,37,.58);backdrop-filter:blur(14px)}
+.github-head{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:14px}
+.github-head h2{margin:0;color:#f5f8ff;font-size:23px}
+.github-head p{margin:5px 0 0;color:#8499b7;font-size:11px}
+.github-open{padding:8px 11px;border:1px solid rgba(75,135,255,.3);border-radius:8px;color:#9ec0ff;text-decoration:none;background:rgba(18,40,73,.55);font-size:10px;font-weight:700}
+.github-status{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid rgba(59,130,246,.2);border-radius:9px;background:rgba(5,24,50,.62)}
+.github-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e}
+.github-status strong{display:block;color:#eef4ff;font-size:12px}
+.github-status small{display:block;margin-top:2px;color:#7186a5;font-size:9px}
+.github-status b{margin-left:auto;color:#63d79a;font-size:8px;letter-spacing:1px}
+.github-files{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+.github-file{padding:9px 10px;border:1px solid rgba(80,130,205,.16);border-radius:8px;background:rgba(9,27,51,.55);color:#a6b7cf;font-size:9px}
+@media(max-width:750px){.github-files{grid-template-columns:repeat(2,1fr)}.github-head{align-items:flex-start;flex-direction:column}}
