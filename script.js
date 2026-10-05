@@ -104,7 +104,7 @@ projectsButton.type="button";projectsButton.className="side-link";projectsButton
 projectsButton.addEventListener("click",()=>{goToWorkspace("projects");setActiveNav(projectsButton)});
 const githubButton=document.createElement("button");
 githubButton.type="button";githubButton.className="side-link";githubButton.textContent="◉ GitHub";
-githubButton.addEventListener("click",()=>{addMessage("GitHub: Bendigo-website is connected to your Bendigo AI workspace. Use the Code Lab to prepare changes before publishing.","ai");goToWorkspace("codeLab");setActiveNav(githubButton)});
+githubButton.addEventListener("click",()=>{goToWorkspace("github");loadGithubFiles();setActiveNav(githubButton)});
 const settingsButtonRef=document.getElementById("settingsButton");
 if(sidebarWorkspaceLinks){
   sidebarWorkspaceLinks.append(workspaceButton,builderButton,projectsButton,githubButton);
@@ -120,6 +120,8 @@ if(newChatButton) newChatButton.textContent="＋ New project";
 if(newChatButton) newChatButton.addEventListener("click",()=>newProjectButton?.click());
 setActiveNav(dashboardButton);
 
+async function loadGithubFiles(){const box=document.getElementById("githubFiles");if(!box)return;try{const r=await fetch("https://api.github.com/repos/benedictofori-lgtm/Bendigo-website/contents");if(!r.ok)throw new Error("GitHub request failed");const files=await r.json();box.innerHTML="";files.filter(x=>x.type==="file").forEach(x=>{const el=document.createElement("div");el.className="github-file";el.textContent=x.name;box.appendChild(el)})}catch(e){box.innerHTML='<div class="github-file">Repository files could not be loaded right now.</div>';console.error(e)}}
+loadGithubFiles();
 /* Projects */
 const projectGrid=document.getElementById("projectGrid");
 const newProjectButton=document.getElementById("newProjectButton");
