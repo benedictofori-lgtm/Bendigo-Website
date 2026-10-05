@@ -1,3 +1,16 @@
+:root {
+  --bg: #0b1020;
+  --panel: #111827;
+  --panel-2: #172033;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --accent-2: #60a5fa;
+  --user: #2563eb;
+  --ai: #1e293b;
+  --border: rgba(148, 163, 184, 0.18);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -6,119 +19,199 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #111827, #2563eb);
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.35), transparent 35%),
+    linear-gradient(135deg, #020617, #111827 55%, #1d4ed8);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  color: var(--text);
 }
 
 .app {
   width: 100%;
-  max-width: 700px;
-  background: white;
-  border-radius: 20px;
+  max-width: 820px;
+  min-height: 650px;
+  background: rgba(15, 23, 42, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
 }
 
 header {
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 22px;
-  background: #111827;
-  color: white;
+  padding: 22px 24px;
+  background: rgba(2, 6, 23, 0.7);
+  border-bottom: 1px solid var(--border);
 }
 
 .logo {
-  font-size: 40px;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  font-size: 30px;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
 }
 
 h1 {
   margin: 0;
+  font-size: 25px;
 }
 
 header p {
   margin: 5px 0 0;
-  opacity: .75;
+  color: var(--muted);
 }
 
 .chat {
-  height: 430px;
-  padding: 20px;
+  height: 440px;
+  padding: 24px;
   overflow-y: auto;
-  background: #f3f4f6;
+  background: rgba(15, 23, 42, 0.72);
 }
 
 .message {
-  max-width: 80%;
-  padding: 12px 16px;
-  margin-bottom: 12px;
-  border-radius: 16px;
-  line-height: 1.4;
+  max-width: 78%;
+  padding: 14px 17px;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  line-height: 1.5;
+  animation: messageIn 0.2s ease-out;
 }
 
 .message.ai {
-  background: white;
+  background: var(--ai);
+  border: 1px solid var(--border);
   margin-right: auto;
 }
 
 .message.user {
-  background: #2563eb;
+  background: linear-gradient(135deg, var(--user), #1d4ed8);
   color: white;
   margin-left: auto;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
 }
 
 .input-area {
   display: flex;
   gap: 10px;
-  padding: 15px;
+  padding: 18px 20px 10px;
+  background: var(--panel);
 }
 
 input {
   flex: 1;
-  padding: 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
+  min-width: 0;
+  padding: 15px 17px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   font-size: 16px;
   outline: none;
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+input::placeholder {
+  color: #64748b;
+}
+
+input:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
 }
 
 button {
   border: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 0 20px;
-  background: #2563eb;
+  background: linear-gradient(135deg, var(--accent), #2563eb);
   color: white;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 button:hover {
-  opacity: .9;
+  transform: translateY(-1px);
+  opacity: 0.95;
 }
 
 button:disabled {
-  opacity: .6;
+  opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
 }
 
 #voiceButton {
   padding: 0 16px;
+  font-size: 19px;
 }
 
 .voice-status {
   min-height: 20px;
-  margin: -5px 15px 10px;
+  margin: 0;
+  padding: 4px 20px 12px;
   text-align: center;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--muted);
+  background: var(--panel);
 }
 
 .clear {
   display: block;
   margin: 0 auto 18px;
   padding: 10px 18px;
-  background: #6b7280;
+  background: #334155;
+  font-size: 14px;
+}
+
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 0;
+  }
+
+  .app {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  .chat {
+    height: calc(100vh - 230px);
+  }
+
+  .message {
+    max-width: 88%;
+  }
+
+  .input-area {
+    padding: 14px;
+  }
+
+  #voiceButton {
+    padding: 0 13px;
+  }
+
+  button {
+    padding: 0 15px;
+  }
 }
