@@ -1,6 +1,8 @@
 const chat = document.getElementById("chat");
 const input = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
+const voiceButton = document.getElementById("voiceButton");
+const voiceStatus = document.getElementById("voiceStatus");
 const clearButton = document.getElementById("clearButton");
 
 const history = [];
@@ -64,6 +66,42 @@ input.addEventListener("keydown", (event) => {
     sendMessage();
   }
 });
+
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-GH";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  voiceButton.addEventListener("click", () => {
+    recognition.start();
+    voiceButton.disabled = true;
+    voiceStatus.textContent = "Listening... 🎤";
+  });
+
+  recognition.addEventListener("result", (event) => {
+    input.value = event.results[0][0].transcript;
+    voiceStatus.textContent = "Voice captured. Click Send.";
+  });
+
+  recognition.addEventListener("end", () => {
+    voiceButton.disabled = false;
+    if (!input.value.trim()) {
+      voiceStatus.textContent = "";
+    }
+  });
+
+  recognition.addEventListener("error", () => {
+    voiceButton.disabled = false;
+    voiceStatus.textContent = "Voice input was not available. Please try again.";
+  });
+} else {
+  voiceButton.disabled = true;
+  voiceStatus.textContent = "Voice input is not supported by this browser.";
+}
 
 clearButton.addEventListener("click", () => {
   chat.innerHTML = "";
