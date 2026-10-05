@@ -8,27 +8,52 @@
 </head>
 <body>
   <main class="app">
-    <header>
-      <div class="logo">🤖</div>
-      <div>
-        <h1>Bendigo AI</h1>
-        <p>Your simple AI chatbot</p>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">🤖</div>
+        <div>
+          <strong>Bendigo AI</strong>
+          <span>Assistant</span>
+        </div>
       </div>
-    </header>
 
-    <section id="chat" class="chat">
-      <div class="message ai">Hello! I'm Bendigo AI. How can I help you today? 👋</div>
+      <button id="newChatButton" class="side-button">＋ New Chat</button>
+
+      <div class="side-section">
+        <p>MENU</p>
+        <button id="historyButton" class="side-link">🕘 Chat History</button>
+        <button id="settingsButton" class="side-link">⚙️ Settings</button>
+        <button id="aboutButton" class="side-link">ℹ️ About Bendigo</button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <span>● Online</span>
+        <small>No API key required</small>
+      </div>
+    </aside>
+
+    <section class="main-chat">
+      <header>
+        <div class="header-logo">🤖</div>
+        <div>
+          <h1>Bendigo AI</h1>
+          <p>Your simple AI chatbot</p>
+        </div>
+      </header>
+
+      <section id="chat" class="chat">
+        <div class="message ai">Hello! I'm Bendigo AI. How can I help you today? 👋</div>
+      </section>
+
+      <div class="input-area">
+        <input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off">
+        <button id="voiceButton" type="button" title="Speak">🎤</button>
+        <button id="sendButton" type="button">Send</button>
+      </div>
+
+      <p id="voiceStatus" class="voice-status"></p>
+      <button id="clearButton" class="clear" type="button">Clear chat</button>
     </section>
-
-    <div class="input-area">
-      <input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off">
-      <button id="voiceButton" type="button" title="Speak">🎤</button>
-      <button id="sendButton" type="button">Send</button>
-    </div>
-
-    <p id="voiceStatus" class="voice-status"></p>
-
-    <button id="clearButton" class="clear" type="button">Clear chat</button>
   </main>
   <script src="script.js"></script>
 </body>
