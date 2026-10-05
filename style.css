@@ -235,3 +235,23 @@ body::after{
     radial-gradient(520px 420px at 58% 78%,rgba(25,45,120,.18),transparent 72%),
     linear-gradient(180deg,#090a0f,#080910);
 }
+
+
+/* Use the uploaded AI artwork as the website background */
+body::before{
+  display:block;
+  z-index:0;
+  width:100vw;
+  height:100vh;
+  left:0;
+  top:0;
+  transform:none;
+  background-image:url("Futuristic%20and%20high-tech%20AI%20concept%20with%20glowing%20digital%20circuit%20background%20royalty%20free.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  animation:none;
+}
+body::after{
+  background:linear-gradient(180deg,rgba(0,4,15,.28),rgba(0,5,18,.42));
+}
