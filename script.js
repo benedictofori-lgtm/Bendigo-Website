@@ -3,6 +3,8 @@ const input = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
 const clearButton = document.getElementById("clearButton");
 
+const history = [];
+
 function addMessage(text, type) {
   const message = document.createElement("div");
   message.className = "message " + type;
@@ -17,6 +19,7 @@ async function sendMessage() {
   if (!text) return;
 
   addMessage(text, "user");
+  history.push({ role: "user", content: text });
   input.value = "";
   sendButton.disabled = true;
   sendButton.textContent = "Thinking...";
@@ -27,7 +30,10 @@ async function sendMessage() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({
+        message: text,
+        history: history.slice(-10)
+      })
     });
 
     const data = await response.json();
@@ -37,10 +43,11 @@ async function sendMessage() {
     }
 
     addMessage(data.reply, "ai");
+    history.push({ role: "assistant", content: data.reply });
   } catch (error) {
     console.error(error);
     addMessage(
-      "Sorry, Bendigo AI could not respond right now. The server may not be connected yet.",
+      "Sorry, Bendigo AI could not respond right now. Please try again.",
       "ai"
     );
   } finally {
@@ -60,6 +67,7 @@ input.addEventListener("keydown", (event) => {
 
 clearButton.addEventListener("click", () => {
   chat.innerHTML = "";
+  history.length = 0;
   addMessage("Chat cleared. Hello again! 👋", "ai");
   input.focus();
 });
