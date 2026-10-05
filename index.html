@@ -10,7 +10,7 @@
 <main class="app">
 <aside class="sidebar">
 <div class="brand"><div class="logo">🤖</div><div><strong>Bendigo AI</strong><span>Assistant</span></div></div>
-<button id="newChatButton" class="side-button">＋ New Chat</button>
+<button id="newChatButton" class="side-button">＋ New Chat</button><div class="chat-search"><input id="chatSearch" type="search" placeholder="Search chats..."></div>
 <div class="side-section"><p>MENU</p><button id="gamesButton" class="side-link">🎮 Game Center</button><button id="studioButton" class="side-link">🎨 Design Studio</button><button id="musicButton" class="side-link">🎵 Music Studio</button><button id="historyButton" class="side-link">🕘 Chat History</button><button id="settingsButton" class="side-link">⚙️ Settings</button><button id="aboutButton" class="side-link">ℹ️ About Bendigo</button></div>
 <div class="sidebar-bottom"><span>● Online</span><small>No API key required</small></div>
 </aside>
@@ -19,7 +19,7 @@
 <header><div class="header-logo">🤖</div><div><h1>Bendigo AI</h1><p>AI assistant + coding lab + games</p></div></header>
 <section id="chat" class="chat"><div class="message ai">Hello! I'm Bendigo AI. How can I help you today? 👋</div></section>
 <div class="input-area"><input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off"><button id="voiceButton" type="button">🎤</button><button id="sendButton" type="button">Send</button></div>
-<p id="voiceStatus" class="voice-status"></p><button id="clearButton" class="clear" type="button">Clear chat</button>
+<div id="typingIndicator" class="typing-indicator" aria-live="polite"><span></span><span></span><span></span> Bendigo is thinking...</div><p id="voiceStatus" class="voice-status"></p><button id="clearButton" class="clear" type="button">Clear chat</button>
 
 <section id="musicStudio" class="music-studio"><div class="studio-head"><div><h2>🎵 Bendigo Music Studio</h2><p>Upload your songs and build a simple playlist.</p></div><span>MUSIC</span></div><div class="music-player"><div class="music-now"><div class="music-disc">🎵</div><div><strong id="trackName">No song selected</strong><small id="trackTime">0:00 / 0:00</small></div></div><audio id="musicAudio"></audio><div class="music-controls"><button id="musicPlay" type="button">▶ Play</button><button id="musicPrev" type="button">⏮ Previous</button><button id="musicNext" type="button">Next ⏭</button><label>🔊 <input id="musicVolume" type="range" min="0" max="1" step=".01" value=".8"></label></div><input id="musicProgress" type="range" min="0" max="100" value="0"></div><div class="music-actions"><label class="upload-design">🎧 Add Song <input id="musicUpload" type="file" accept="audio/*" multiple></label><button id="clearMusic" type="button">🗑️ Clear Playlist</button></div><div id="musicPlaylist" class="music-playlist"><p>No songs yet. Add an audio file from your computer.</p></div></section><section id="designStudio" class="design-studio">
 <div class="studio-head"><div><h2>🎨 Bendigo Design Studio</h2><p>Draw, add shapes and text, then save your creation.</p></div><span>CANVAS</span></div>
