@@ -8,6 +8,11 @@ const newChatButton = document.getElementById("newChatButton");
 const historyButton = document.getElementById("historyButton");
 const settingsButton = document.getElementById("settingsButton");
 const aboutButton = document.getElementById("aboutButton");
+const runCodeButton = document.getElementById("runCodeButton");
+const htmlCode = document.getElementById("htmlCode");
+const cssCode = document.getElementById("cssCode");
+const jsCode = document.getElementById("jsCode");
+const codePreview = document.getElementById("codePreview");
 
 const history = [];
 
@@ -34,7 +39,6 @@ function speak(text) {
 
 async function sendMessage() {
   const text = input.value.trim();
-
   if (!text) return;
 
   addMessage(text, "user");
@@ -46,9 +50,7 @@ async function sendMessage() {
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: text,
         history: history.slice(-10)
@@ -66,10 +68,7 @@ async function sendMessage() {
     speak(data.reply);
   } catch (error) {
     console.error(error);
-    addMessage(
-      "Sorry, Bendigo AI could not respond right now. Please try again.",
-      "ai"
-    );
+    addMessage("Sorry, Bendigo AI could not respond right now. Please try again.", "ai");
   } finally {
     sendButton.disabled = false;
     sendButton.textContent = "Send";
@@ -85,12 +84,42 @@ function startNewChat() {
   input.focus();
 }
 
+function runCode() {
+  const html = htmlCode.value;
+  const css = cssCode.value.replace(/<\/style>/gi, "");
+  const js = jsCode.value.replace(/<\/script>/gi, "");
+
+  const documentCode = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+${css}
+</style>
+</head>
+<body>
+${html}
+<script>
+try {
+${js}
+} catch (error) {
+  document.body.insertAdjacentHTML("beforeend",
+    "<pre style='color:red;white-space:pre-wrap'>" +
+    error.message +
+    "</pre>"
+  );
+}
+<\/script>
+</body>
+</html>`;
+
+  codePreview.srcdoc = documentCode;
+}
+
 sendButton.addEventListener("click", sendMessage);
 
 input.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    sendMessage();
-  }
+  if (event.key === "Enter") sendMessage();
 });
 
 newChatButton.addEventListener("click", startNewChat);
@@ -113,10 +142,12 @@ settingsButton.addEventListener("click", () => {
 
 aboutButton.addEventListener("click", () => {
   addMessage(
-    "Bendigo AI is the assistant for the Bendigo Website. 🤖 It uses built-in responses and browser features, so no API key is needed.",
+    "Bendigo AI is the assistant for the Bendigo Website. 🤖 It includes chat, math help, and a coding playground.",
     "ai"
   );
 });
+
+runCodeButton.addEventListener("click", runCode);
 
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -140,9 +171,7 @@ if (SpeechRecognition) {
 
   recognition.addEventListener("end", () => {
     voiceButton.disabled = false;
-    if (!input.value.trim()) {
-      voiceStatus.textContent = "";
-    }
+    if (!input.value.trim()) voiceStatus.textContent = "";
   });
 
   recognition.addEventListener("error", () => {
@@ -155,3 +184,5 @@ if (SpeechRecognition) {
 }
 
 clearButton.addEventListener("click", startNewChat);
+
+runCode();
