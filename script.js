@@ -92,6 +92,7 @@ if(studioButton) studioButton.addEventListener("click",()=>{designStudio.scrollI
 if(historyButton) historyButton.addEventListener("click",async()=>{await loadConversations();conversationList?.scrollIntoView({behavior:"smooth",block:"nearest"});setActiveNav(historyButton)});
 if(settingsButton) settingsButton.addEventListener("click",()=>{addMessage("Settings: 🎤 Voice input and 🔊 spoken replies are enabled. You can use Bendigo AI without an API key when the local fallback is available.","ai");goToWorkspace("chat");setActiveNav(settingsButton)});
 if(aboutButton) aboutButton.addEventListener("click",()=>{addMessage("Bendigo AI is your workspace for AI chat, coding, design, and games. Music Studio has been removed.","ai");goToWorkspace("chat");setActiveNav(aboutButton)});
+const sidebarWorkspaceLinks=document.querySelector(".sidebar-workspace-links");
 const builderButton=document.createElement("button");
 builderButton.type="button";builderButton.className="side-link";builderButton.textContent="✦ Builder";
 builderButton.addEventListener("click",()=>{goToWorkspace("codeLab");setActiveNav(builderButton)});
@@ -100,18 +101,23 @@ workspaceButton.type="button";workspaceButton.className="side-link";workspaceBut
 workspaceButton.addEventListener("click",()=>{goToWorkspace("chat");setActiveNav(workspaceButton)});
 const projectsButton=document.createElement("button");
 projectsButton.type="button";projectsButton.className="side-link";projectsButton.textContent="▦ Projects";
-projectsButton.addEventListener("click",()=>{goToWorkspace("dashboard");setActiveNav(projectsButton)});
+projectsButton.addEventListener("click",()=>{goToWorkspace("projects");setActiveNav(projectsButton)});
 const githubButton=document.createElement("button");
 githubButton.type="button";githubButton.className="side-link";githubButton.textContent="◉ GitHub";
 githubButton.addEventListener("click",()=>{addMessage("GitHub: Bendigo-website is connected to your Bendigo AI workspace. Use the Code Lab to prepare changes before publishing.","ai");goToWorkspace("codeLab");setActiveNav(githubButton)});
-const menu=document.querySelector(".side-section");
-if(menu){
-  const settingsRef=document.getElementById("settingsButton");
-  menu.insertBefore(workspaceButton, builderButton || settingsRef);
-  menu.insertBefore(builderButton,settingsRef);
-  menu.insertBefore(projectsButton,settingsRef);
-  menu.insertBefore(githubButton,settingsRef);
+const settingsButtonRef=document.getElementById("settingsButton");
+if(sidebarWorkspaceLinks){
+  sidebarWorkspaceLinks.append(workspaceButton,builderButton,projectsButton,githubButton);
 }
+if(settingsButtonRef) settingsButtonRef.style.display="none";
+if(document.getElementById("gamesButton")) document.getElementById("gamesButton").style.display="none";
+if(document.getElementById("studioButton")) document.getElementById("studioButton").style.display="none";
+if(document.getElementById("historyButton")) document.getElementById("historyButton").style.display="none";
+if(document.getElementById("aboutButton")) document.getElementById("aboutButton").style.display="none";
+const sidebarEditButton=document.getElementById("sidebarEditButton");
+if(sidebarEditButton) sidebarEditButton.addEventListener("click",()=>goToWorkspace("projects"));
+if(newChatButton) newChatButton.textContent="＋ New project";
+if(newChatButton) newChatButton.addEventListener("click",()=>newProjectButton?.click());
 setActiveNav(dashboardButton);
 
 /* Projects */
