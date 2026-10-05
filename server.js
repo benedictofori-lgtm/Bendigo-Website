@@ -6,8 +6,43 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static("."));
 
+function calculate(expression) {
+  const cleaned = expression
+    .replace(/,/g, "")
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/[^0-9+\-*/().% ]/g, "")
+    .trim();
+
+  if (!cleaned || !/[0-9]/.test(cleaned)) return null;
+
+  try {
+    const result = Function("\"use strict\"; return (" + cleaned + ")")();
+    if (typeof result !== "number" || !Number.isFinite(result)) return null;
+    return result;
+  } catch {
+    return null;
+  }
+}
+
 function getAIResponse(text, history = []) {
-  const message = text.toLowerCase().trim();
+  const original = text.trim();
+  const message = original.toLowerCase();
+
+  const calculationText = message
+    .replace(/^\s*(calculate|calc|what is|what's)\s+/i, "")
+    .replace(/[?=]+$/g, "")
+    .trim();
+
+  if (/^(calculate|calc|what is|what's)\s+[-+*/().%\d\s×÷,]+$/i.test(original)) {
+    const result = calculate(calculationText);
+    if (result !== null) return "🧮 The answer is " + result;
+  }
+
+  if (/^[-+*/().%\d\s×÷,]+$/.test(original)) {
+    const result = calculate(original);
+    if (result !== null) return "🧮 The answer is " + result;
+  }
 
   if (/^(hi|hello|hey)\b/.test(message)) {
     return "Hello! 👋 I'm Bendigo AI. How can I help you?";
@@ -26,7 +61,11 @@ function getAIResponse(text, history = []) {
   }
 
   if (message.includes("what can you do") || message.includes("what do you do")) {
-    return "I can chat with you and help with Python, HTML, CSS, JavaScript, websites, games, and general questions. 🚀";
+    return "I can chat with you, calculate math, and help with Python, HTML, CSS, JavaScript, websites, games, and general questions. 🚀";
+  }
+
+  if (message.includes("calculator") || message.includes("calculate")) {
+    return "🧮 Sure! Type something like 25 + 17, 100 / 4, or (8 * 6) - 5.";
   }
 
   if (message.includes("ghana")) {
@@ -49,6 +88,10 @@ function getAIResponse(text, history = []) {
     return "CSS controls how a website looks. 🎨 It can change colors, spacing, layouts, fonts, and animations.";
   }
 
+  if (message.includes("code") || message.includes("coding")) {
+    return "💻 I can help with Python, JavaScript, HTML, and CSS. Tell me what you want your code to do.";
+  }
+
   if (message.includes("game")) {
     return "Yes! 🎮 I can help you build racing, fighting, adventure, puzzle, and other games.";
   }
@@ -62,7 +105,7 @@ function getAIResponse(text, history = []) {
   }
 
   if (message.includes("help")) {
-    return "Sure! 👍 Ask me about Python, JavaScript, HTML, CSS, websites, games, or Ghana.";
+    return "Sure! 👍 Try a math problem, or ask me about Python, JavaScript, HTML, CSS, websites, games, or Ghana.";
   }
 
   if (message.includes("thank")) {
@@ -77,7 +120,7 @@ function getAIResponse(text, history = []) {
     return "I remember that we've been chatting. 🧠 Tell me a little more about what you mean, and I'll try to help.";
   }
 
-  return "I'm Bendigo AI. 🤖 I don't know that yet, but you can ask me about Python, websites, games, JavaScript, CSS, HTML, or Ghana.";
+  return "I'm Bendigo AI. 🤖 I don't know that yet, but you can ask me about math, Python, websites, games, JavaScript, CSS, HTML, or Ghana.";
 }
 
 app.post("/api/chat", (req, res) => {
