@@ -255,3 +255,30 @@ body::before{
 body::after{
   background:linear-gradient(180deg,rgba(0,4,15,.28),rgba(0,5,18,.42));
 }
+
+
+/* Gemini-style microphone button */
+#voiceButton{
+  display:grid;
+  place-items:center;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  padding:0;
+  border-radius:50%;
+  background:#2b2d33;
+  color:#dfe1e7;
+  border:1px solid rgba(255,255,255,.04);
+}
+#voiceButton:hover{
+  background:#363941;
+  opacity:1;
+}
+#voiceButton:active{
+  transform:scale(.96);
+}
+.gemini-mic-icon{
+  width:21px;
+  height:21px;
+  fill:currentColor;
+}
