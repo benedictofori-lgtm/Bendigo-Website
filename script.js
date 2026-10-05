@@ -113,3 +113,36 @@ if(menu){
   menu.insertBefore(githubButton,settingsRef);
 }
 setActiveNav(dashboardButton);
+
+/* Projects */
+const projectGrid=document.getElementById("projectGrid");
+const newProjectButton=document.getElementById("newProjectButton");
+const projectStoreKey="bendigoProjects";
+function getProjects(){
+  try{return JSON.parse(localStorage.getItem(projectStoreKey)||"[]")}catch{return[]}
+}
+function saveProjects(items){localStorage.setItem(projectStoreKey,JSON.stringify(items))}
+function renderProjects(){
+  if(!projectGrid)return;
+  let projects=getProjects();
+  if(!projects.length)projects=[{id:"bendigo-ai",name:"Bendigo AI",description:"AI assistant, games, design and coding workspace.",files:"HTML · CSS · JS",icon:"AI"}];
+  projectGrid.innerHTML="";
+  projects.forEach(p=>{
+    const card=document.createElement("article");card.className="project-card";
+    card.innerHTML='<div><div class="project-icon"></div><h3></h3><p></p></div><button type="button">Open project</button>';
+    card.querySelector(".project-icon").textContent=p.icon||"AI";
+    card.querySelector("h3").textContent=p.name;
+    card.querySelector("p").textContent=p.description+(p.files?" · "+p.files:"");
+    card.querySelector("button").addEventListener("click",()=>{goToWorkspace("chat");addMessage("Opening project: "+p.name+". What would you like to build next?","ai")});
+    projectGrid.appendChild(card);
+  });
+}
+if(newProjectButton)newProjectButton.addEventListener("click",()=>{
+  const name=prompt("Project name:");
+  if(!name?.trim())return;
+  const projects=getProjects();
+  projects.push({id:crypto.randomUUID(),name:name.trim(),description:"New Bendigo AI project",files:"Ready to build",icon:"✦"});
+  saveProjects(projects);renderProjects();
+});
+const projectsNav=document.querySelector(".side-section");
+renderProjects();
