@@ -282,3 +282,27 @@ body::after{
   height:21px;
   fill:currentColor;
 }
+
+/* Bendigo AI workspace redesign */
+body{align-items:stretch;justify-content:stretch;padding:0;min-height:100vh;background:#06101f;overflow-x:hidden}
+body::before{width:100vw;height:100vh;left:0;top:0;transform:none;background-size:cover;background-position:center;opacity:.62;animation:none}
+body::after{background:linear-gradient(90deg,rgba(3,10,25,.84) 0 18%,rgba(3,10,25,.18) 45%,rgba(3,10,25,.28)),linear-gradient(180deg,rgba(3,10,25,.1),rgba(3,10,25,.5))}
+.app{width:100%;max-width:none;min-height:100vh;grid-template-columns:245px 1fr;border:0;border-radius:0;background:rgba(4,12,28,.22);box-shadow:none;backdrop-filter:blur(8px)}
+.sidebar{padding:20px 15px;background:rgba(3,9,23,.88);border-right:1px solid rgba(148,163,184,.12)}
+.brand{margin-bottom:24px;padding:0 9px}.logo{width:38px;height:38px;border-radius:11px;font-size:21px}
+.side-button{margin-bottom:18px;min-height:44px;border-radius:9px;background:#fff;color:#0a1324;box-shadow:none}
+.chat-search{margin-bottom:18px}.chat-search input{width:100%;padding:11px 12px;border-radius:9px;background:rgba(15,27,47,.9);font-size:13px}
+.side-section p{margin:10px 10px 8px;font-size:10px;color:#8090a8}.side-link{padding:11px 12px;border-radius:8px;color:#aebbd0}.side-link:hover,.side-link:focus{background:rgba(86,104,140,.18);color:#fff}
+.main-chat{min-width:0;background:rgba(6,17,36,.16)}
+header{padding:18px 32px;min-height:82px;background:rgba(4,14,31,.2);border-bottom:1px solid rgba(148,163,184,.13)}
+.header-logo{width:45px;height:45px;border-radius:13px;font-size:24px}h1{font-size:23px}header p{font-size:12px}
+.chat{height:auto;min-height:270px;padding:28px 7%;background:transparent}
+.chat:before{content:"BENDIGO AI WORKSPACE";display:block;color:#8176ff;font-size:10px;font-weight:800;letter-spacing:1.5px;margin:4px 0 16px}
+.message{max-width:760px;border-radius:16px;background:rgba(9,22,43,.62)!important;border:1px solid rgba(148,163,184,.14)!important;backdrop-filter:blur(12px)}
+.message.user{background:linear-gradient(135deg,#6255f5,#7c5cff)!important}
+.quick-prompts{padding:10px 7%;background:transparent;justify-content:center}.quick-prompts button{min-height:38px;background:rgba(13,27,48,.64);border:1px solid rgba(148,163,184,.2);color:#d9e2ef}
+.input-area{margin:0 6%;padding:14px 14px 14px 20px;border:1px solid rgba(148,163,184,.2);border-radius:22px;background:rgba(9,20,38,.72);backdrop-filter:blur(14px);box-shadow:0 18px 55px rgba(0,0,0,.22)}
+.input-area input{background:transparent;border:0;box-shadow:none}#sendButton{min-height:44px;border-radius:13px;background:linear-gradient(135deg,#6255f5,#4f8cff)}#voiceButton{background:rgba(75,91,120,.32);border-radius:50%;min-width:44px}
+.design-studio,.game-center,.game-lab,.fight-lab,.adventure-lab,.code-lab{margin-left:6%;margin-right:6%;background:rgba(7,19,39,.62);border:1px solid rgba(148,163,184,.15);border-radius:18px;backdrop-filter:blur(14px);box-shadow:0 16px 55px rgba(0,0,0,.2)}
+@media(max-width:850px){.app{grid-template-columns:210px 1fr}.input-area{margin-left:3%;margin-right:3%}}
+@media(max-width:650px){.app{display:block}.main-chat{min-height:100vh}.chat{padding:24px}.quick-prompts{padding:10px 18px}.input-area{margin:0 14px}.design-studio,.game-center,.game-lab,.fight-lab,.adventure-lab,.code-lab{margin-left:12px;margin-right:12px}}
