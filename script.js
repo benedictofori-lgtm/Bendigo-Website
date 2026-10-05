@@ -1,224 +1,29 @@
-const chat = document.getElementById("chat");
-const input = document.getElementById("userInput");
-const sendButton = document.getElementById("sendButton");
-const voiceButton = document.getElementById("voiceButton");
-const voiceStatus = document.getElementById("voiceStatus");
-const clearButton = document.getElementById("clearButton");
-const newChatButton = document.getElementById("newChatButton");
-const historyButton = document.getElementById("historyButton");
-const settingsButton = document.getElementById("settingsButton");
-const aboutButton = document.getElementById("aboutButton");
-const runCodeButton = document.getElementById("runCodeButton");
-const htmlCode = document.getElementById("htmlCode");
-const cssCode = document.getElementById("cssCode");
-const jsCode = document.getElementById("jsCode");
-const codePreview = document.getElementById("codePreview");
+const chat=document.getElementById("chat"),input=document.getElementById("userInput"),sendButton=document.getElementById("sendButton"),voiceButton=document.getElementById("voiceButton"),voiceStatus=document.getElementById("voiceStatus"),clearButton=document.getElementById("clearButton"),newChatButton=document.getElementById("newChatButton"),historyButton=document.getElementById("historyButton"),settingsButton=document.getElementById("settingsButton"),aboutButton=document.getElementById("aboutButton"),runCodeButton=document.getElementById("runCodeButton"),htmlCode=document.getElementById("htmlCode"),cssCode=document.getElementById("cssCode"),jsCode=document.getElementById("jsCode"),codePreview=document.getElementById("codePreview");
+const gameArea=document.getElementById("gameArea"),playerCar=document.getElementById("playerCar"),enemyCar=document.getElementById("enemyCar"),gameScore=document.getElementById("gameScore"),gameMessage=document.getElementById("gameMessage"),startGameButton=document.getElementById("startGameButton"),leftButton=document.getElementById("leftButton"),rightButton=document.getElementById("rightButton");
+const playerFighter=document.getElementById("playerFighter"),cpuFighter=document.getElementById("cpuFighter"),playerHealth=document.getElementById("playerHealth"),cpuHealth=document.getElementById("cpuHealth"),fightArena=document.getElementById("fightArena"),fightMessage=document.getElementById("fightMessage"),startFightButton=document.getElementById("startFightButton"),attackButton=document.getElementById("attackButton"),defendButton=document.getElementById("defendButton");
+const history=[];let gameRunning=false,gameAnimation,enemyX=0,enemyY=-80,playerX=0,score=0,lastTime=0;
+let fightRunning=false,playerHP=100,cpuHP=100,playerFightX=0,defending=false,cpuTimer;
 
-const gameArea = document.getElementById("gameArea");
-const playerCar = document.getElementById("playerCar");
-const enemyCar = document.getElementById("enemyCar");
-const gameScore = document.getElementById("gameScore");
-const gameMessage = document.getElementById("gameMessage");
-const startGameButton = document.getElementById("startGameButton");
-const leftButton = document.getElementById("leftButton");
-const rightButton = document.getElementById("rightButton");
+function addMessage(text,type){const message=document.createElement("div");message.className="message "+type;message.textContent=text;chat.appendChild(message);chat.scrollTop=chat.scrollHeight}
+function speak(text){if(!("speechSynthesis"in window))return;window.speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(text);speech.lang="en-GH";speech.rate=1;speech.pitch=1;window.speechSynthesis.speak(speech)}
+async function sendMessage(){const text=input.value.trim();if(!text)return;addMessage(text,"user");history.push({role:"user",content:text});input.value="";sendButton.disabled=true;sendButton.textContent="Thinking...";try{const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text,history:history.slice(-10)})});const data=await response.json();if(!response.ok)throw new Error(data.error||"Something went wrong.");addMessage(data.reply,"ai");history.push({role:"assistant",content:data.reply});speak(data.reply)}catch(error){console.error(error);addMessage("Sorry, Bendigo AI could not respond right now. Please try again.","ai")}finally{sendButton.disabled=false;sendButton.textContent="Send";input.focus()}}
+function startNewChat(){chat.innerHTML="";history.length=0;window.speechSynthesis.cancel();addMessage("New chat started! 👋 I'm Bendigo AI. How can I help?","ai");input.focus()}
+function runCode(){const html=htmlCode.value,css=cssCode.value.replace(/<\/style>/gi,""),js=jsCode.value.replace(/<\/script>/gi,"");codePreview.srcdoc=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}<script>try{${js}}catch(error){document.body.insertAdjacentHTML("beforeend","<pre style='color:red;white-space:pre-wrap'>"+error.message+"</pre>")}<\/script></body></html>`}
 
-const history = [];
-let gameRunning = false;
-let gameAnimation;
-let enemyX = 0;
-let enemyY = -80;
-let playerX = 0;
-let score = 0;
-let lastTime = 0;
+function resetGame(){cancelAnimationFrame(gameAnimation);gameRunning=true;score=0;lastTime=0;playerX=(gameArea.clientWidth-52)/2;enemyX=Math.random()*Math.max(1,gameArea.clientWidth-52);enemyY=-80;gameScore.textContent="0";gameMessage.textContent="";playerCar.style.left=playerX+"px";enemyCar.style.left=enemyX+"px";enemyCar.style.top=enemyY+"px";startGameButton.textContent="🔄 Restart Race";gameArea.focus();gameAnimation=requestAnimationFrame(gameLoop)}
+function movePlayer(direction){if(!gameRunning)return;playerX+=direction*28;playerX=Math.max(0,Math.min(gameArea.clientWidth-52,playerX));playerCar.style.left=playerX+"px"}
+function gameLoop(timestamp){if(!gameRunning)return;if(!lastTime)lastTime=timestamp;const delta=Math.min(40,timestamp-lastTime);lastTime=timestamp;enemyY+=delta*.22;if(enemyY>gameArea.clientHeight){enemyY=-80;enemyX=Math.random()*Math.max(1,gameArea.clientWidth-52);score++;gameScore.textContent=String(score)}enemyCar.style.left=enemyX+"px";enemyCar.style.top=enemyY+"px";const hit=playerX<enemyX+52&&playerX+52>enemyX&&gameArea.clientHeight-83<enemyY+65&&gameArea.clientHeight-18>enemyY;if(hit){gameRunning=false;cancelAnimationFrame(gameAnimation);gameMessage.textContent="💥 Game Over! Score: "+score;startGameButton.textContent="🏁 Start Race";return}gameAnimation=requestAnimationFrame(gameLoop)}
 
-function addMessage(text, type) {
-  const message = document.createElement("div");
-  message.className = "message " + type;
-  message.textContent = text;
-  chat.appendChild(message);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.lang = "en-GH";
-  speech.rate = 1;
-  speech.pitch = 1;
-  window.speechSynthesis.speak(speech);
-}
-
-async function sendMessage() {
-  const text = input.value.trim();
-  if (!text) return;
-
-  addMessage(text, "user");
-  history.push({ role: "user", content: text });
-  input.value = "";
-  sendButton.disabled = true;
-  sendButton.textContent = "Thinking...";
-
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, history: history.slice(-10) })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Something went wrong.");
-    addMessage(data.reply, "ai");
-    history.push({ role: "assistant", content: data.reply });
-    speak(data.reply);
-  } catch (error) {
-    console.error(error);
-    addMessage("Sorry, Bendigo AI could not respond right now. Please try again.", "ai");
-  } finally {
-    sendButton.disabled = false;
-    sendButton.textContent = "Send";
-    input.focus();
-  }
-}
-
-function startNewChat() {
-  chat.innerHTML = "";
-  history.length = 0;
-  window.speechSynthesis.cancel();
-  addMessage("New chat started! 👋 I'm Bendigo AI. How can I help?", "ai");
-  input.focus();
-}
-
-function runCode() {
-  const html = htmlCode.value;
-  const css = cssCode.value.replace(/<\/style>/gi, "");
-  const js = jsCode.value.replace(/<\/script>/gi, "");
-  codePreview.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}<script>try{${js}}catch(error){document.body.insertAdjacentHTML("beforeend","<pre style='color:red;white-space:pre-wrap'>"+error.message+"</pre>")}<\/script></body></html>`;
-}
-
-function resetGame() {
-  cancelAnimationFrame(gameAnimation);
-  gameRunning = true;
-  score = 0;
-  lastTime = 0;
-  playerX = (gameArea.clientWidth - 52) / 2;
-  enemyX = Math.random() * Math.max(1, gameArea.clientWidth - 52);
-  enemyY = -80;
-  gameScore.textContent = "0";
-  gameMessage.textContent = "";
-  playerCar.style.left = playerX + "px";
-  enemyCar.style.left = enemyX + "px";
-  enemyCar.style.top = enemyY + "px";
-  startGameButton.textContent = "🔄 Restart Race";
-  gameArea.focus();
-  gameAnimation = requestAnimationFrame(gameLoop);
-}
-
-function movePlayer(direction) {
-  if (!gameRunning) return;
-  playerX += direction * 28;
-  playerX = Math.max(0, Math.min(gameArea.clientWidth - 52, playerX));
-  playerCar.style.left = playerX + "px";
-}
-
-function gameLoop(timestamp) {
-  if (!gameRunning) return;
-  if (!lastTime) lastTime = timestamp;
-  const delta = Math.min(40, timestamp - lastTime);
-  lastTime = timestamp;
-
-  enemyY += delta * 0.22;
-
-  if (enemyY > gameArea.clientHeight) {
-    enemyY = -80;
-    enemyX = Math.random() * Math.max(1, gameArea.clientWidth - 52);
-    score += 1;
-    gameScore.textContent = String(score);
-  }
-
-  enemyCar.style.left = enemyX + "px";
-  enemyCar.style.top = enemyY + "px";
-
-  const playerLeft = playerX;
-  const playerRight = playerX + 52;
-  const playerTop = gameArea.clientHeight - 18 - 65;
-  const playerBottom = gameArea.clientHeight - 18;
-  const enemyLeft = enemyX;
-  const enemyRight = enemyX + 52;
-  const enemyTop = enemyY;
-  const enemyBottom = enemyY + 65;
-
-  const hit =
-    playerLeft < enemyRight &&
-    playerRight > enemyLeft &&
-    playerTop < enemyBottom &&
-    playerBottom > enemyTop;
-
-  if (hit) {
-    gameRunning = false;
-    cancelAnimationFrame(gameAnimation);
-    gameMessage.textContent = "💥 Game Over! Score: " + score;
-    startGameButton.textContent = "🏁 Start Race";
-    return;
-  }
-
-  gameAnimation = requestAnimationFrame(gameLoop);
-}
-
-startGameButton.addEventListener("click", resetGame);
-leftButton.addEventListener("click", () => movePlayer(-1));
-rightButton.addEventListener("click", () => movePlayer(1));
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
-    event.preventDefault();
-    movePlayer(-1);
-  }
-  if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
-    event.preventDefault();
-    movePlayer(1);
-  }
-  if (event.key === " " && document.activeElement === gameArea) {
-    event.preventDefault();
-    if (!gameRunning) resetGame();
-  }
-});
-
-sendButton.addEventListener("click", sendMessage);
-input.addEventListener("keydown", (event) => { if (event.key === "Enter") sendMessage(); });
-newChatButton.addEventListener("click", startNewChat);
-historyButton.addEventListener("click", () => addMessage("Chat History is stored only while this page is open. Your current conversation has " + history.length + " messages. 🕘", "ai"));
-settingsButton.addEventListener("click", () => addMessage("Settings: 🎤 Voice input and 🔊 spoken replies are enabled. No API key is required.", "ai"));
-aboutButton.addEventListener("click", () => addMessage("Bendigo AI is the assistant for the Bendigo Website. 🤖 It includes chat, math help, a coding playground, and Bendigo Racing.", "ai"));
-runCodeButton.addEventListener("click", runCode);
-clearButton.addEventListener("click", startNewChat);
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-GH";
-  recognition.interimResults = false;
-  recognition.continuous = false;
-  voiceButton.addEventListener("click", () => {
-    recognition.start();
-    voiceButton.disabled = true;
-    voiceStatus.textContent = "Listening... 🎤";
-  });
-  recognition.addEventListener("result", (event) => {
-    input.value = event.results[0][0].transcript;
-    voiceStatus.textContent = "Voice captured. Click Send.";
-  });
-  recognition.addEventListener("end", () => {
-    voiceButton.disabled = false;
-    if (!input.value.trim()) voiceStatus.textContent = "";
-  });
-  recognition.addEventListener("error", () => {
-    voiceButton.disabled = false;
-    voiceStatus.textContent = "Voice input was not available. Please try again.";
-  });
-} else {
-  voiceButton.disabled = true;
-  voiceStatus.textContent = "Voice input is not supported by this browser.";
-}
-
-runCode();
+function updateFightBars(){playerHealth.style.width=playerHP+"%";cpuHealth.style.width=cpuHP+"%"}
+function resetFight(){clearInterval(cpuTimer);fightRunning=true;playerHP=100;cpuHP=100;defending=false;playerFightX=12;playerFighter.style.left=playerFightX+"%";cpuFighter.style.left="76%";fightMessage.textContent="";updateFightBars();startFightButton.textContent="🔄 Restart Fight";fightArena.focus();cpuTimer=setInterval(cpuAttack,1300)}
+function moveFighter(direction){if(!fightRunning)return;playerFightX+=direction*5;playerFightX=Math.max(2,Math.min(68,playerFightX));playerFighter.style.left=playerFightX+"%"}
+function attack(){if(!fightRunning)return;const playerPixels=playerFightX/100*fightArena.clientWidth;const cpuPixels=.76*fightArena.clientWidth;if(Math.abs(playerPixels-cpuPixels)<115){cpuHP=Math.max(0,cpuHP-12);cpuFighter.style.transform="translateX(8px)";setTimeout(()=>cpuFighter.style.transform="",120);updateFightBars();checkFightEnd()}else{fightMessage.textContent="Move closer to attack!";setTimeout(()=>{if(fightRunning)fightMessage.textContent=""},500)}}
+function defend(){if(!fightRunning)return;defending=true;fightMessage.textContent="🛡️ Defending";setTimeout(()=>{defending=false;if(fightRunning)fightMessage.textContent=""},500)}
+function cpuAttack(){if(!fightRunning)return;const playerPixels=playerFightX/100*fightArena.clientWidth,cpuPixels=.76*fightArena.clientWidth;if(Math.abs(playerPixels-cpuPixels)<125){if(!defending){playerHP=Math.max(0,playerHP-8);playerFighter.style.transform="translateX(-8px)";setTimeout(()=>playerFighter.style.transform="",120);updateFightBars();checkFightEnd()}}}
+function checkFightEnd(){if(cpuHP<=0){fightRunning=false;clearInterval(cpuTimer);fightMessage.textContent="🏆 You Win!";startFightButton.textContent="🥊 Start Fight"}else if(playerHP<=0){fightRunning=false;clearInterval(cpuTimer);fightMessage.textContent="🤖 CPU Wins!";startFightButton.textContent="🥊 Start Fight"}}
+startGameButton.addEventListener("click",resetGame);leftButton.addEventListener("click",()=>movePlayer(-1));rightButton.addEventListener("click",()=>movePlayer(1));
+startFightButton.addEventListener("click",resetFight);attackButton.addEventListener("click",attack);defendButton.addEventListener("click",defend);
+document.addEventListener("keydown",event=>{if(event.key==="ArrowLeft"||event.key.toLowerCase()==="a"){if(document.activeElement!==input)movePlayer(-1),moveFighter(-1)}if(event.key==="ArrowRight"||event.key.toLowerCase()==="d"){if(document.activeElement!==input)movePlayer(1),moveFighter(1)}if(event.code==="Space"&&document.activeElement===fightArena){event.preventDefault();attack()}if(event.key.toLowerCase()==="s"&&document.activeElement===fightArena)defend()});
+sendButton.addEventListener("click",sendMessage);input.addEventListener("keydown",event=>{if(event.key==="Enter")sendMessage()});newChatButton.addEventListener("click",startNewChat);historyButton.addEventListener("click",()=>addMessage("Chat History is stored only while this page is open. Your current conversation has "+history.length+" messages. 🕘","ai"));settingsButton.addEventListener("click",()=>addMessage("Settings: 🎤 Voice input and 🔊 spoken replies are enabled. No API key is required.","ai"));aboutButton.addEventListener("click",()=>addMessage("Bendigo AI includes chat, math help, a coding playground, Bendigo Racing, and Bendigo Fighter. 🤖","ai"));runCodeButton.addEventListener("click",runCode);clearButton.addEventListener("click",startNewChat);
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(SpeechRecognition){const recognition=new SpeechRecognition();recognition.lang="en-GH";recognition.interimResults=false;recognition.continuous=false;voiceButton.addEventListener("click",()=>{recognition.start();voiceButton.disabled=true;voiceStatus.textContent="Listening... 🎤"});recognition.addEventListener("result",event=>{input.value=event.results[0][0].transcript;voiceStatus.textContent="Voice captured. Click Send."});recognition.addEventListener("end",()=>{voiceButton.disabled=false;if(!input.value.trim())voiceStatus.textContent=""});recognition.addEventListener("error",()=>{voiceButton.disabled=false;voiceStatus.textContent="Voice input was not available. Please try again."})}else{voiceButton.disabled=true;voiceStatus.textContent="Voice input is not supported by this browser."}
+runCode();updateFightBars();
