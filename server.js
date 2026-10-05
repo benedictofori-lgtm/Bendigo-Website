@@ -1,10 +1,14 @@
 import express from "express";
+import OpenAI from "openai";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static("."));
+
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+const AI_INSTRUCTIONS = "You are Bendigo AI, a friendly and helpful assistant inside the Bendigo Website. Explain things clearly for a young learner, especially coding, websites, games, school subjects, creativity, and general questions. Be honest when you do not know something. Never claim to have performed an action you cannot perform.";
 
 function calculate(expression) {
   const cleaned = expression
@@ -123,12 +127,32 @@ function getAIResponse(text, history = []) {
   return "I'm Bendigo AI. 🤖 I don't know that yet, but you can ask me about math, Python, websites, games, JavaScript, CSS, HTML, or Ghana.";
 }
 
-app.post("/api/chat", (req, res) => {
+app.post("/api/chat", async (req, res) => {
   const message = req.body?.message;
   const history = Array.isArray(req.body?.history) ? req.body.history.slice(-10) : [];
 
   if (typeof message !== "string" || !message.trim()) {
     return res.status(400).json({ error: "Please enter a message." });
+  }
+
+  if (openai) {
+    try {
+      const input = [...history, { role: "user", content: message }]
+        .slice(-12)
+        .map(item => ({ role: item.role === "assistant" ? "assistant" : "user", content: String(item.content ?? item.message ?? "") }))
+        .filter(item => item.content.trim());
+
+      const response = await openai.responses.create({
+        model: process.env.OPENAI_MODEL || "gpt-6-luna",
+        instructions: AI_INSTRUCTIONS,
+        input
+      });
+
+      return res.json({ reply: response.output_text || "I couldn't generate a response right now." });
+    } catch (error) {
+      console.error("Bendigo AI error:", error.message);
+      return res.status(502).json({ error: "Bendigo AI could not reach the AI service. Check the server API configuration." });
+    }
   }
 
   res.json({ reply: getAIResponse(message, history) });
