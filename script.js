@@ -70,13 +70,42 @@ async function switchConversation(id){sessionId=id;localStorage.setItem("bendigo
 async function deleteConversation(id){try{const r=await fetch("/api/chat/conversations/"+encodeURIComponent(id),{method:"DELETE"});if(!r.ok)throw new Error("Delete failed");if(id===sessionId){sessionId=crypto.randomUUID();localStorage.setItem("bendigoSessionId",sessionId);chat.innerHTML="";history.length=0;addMessage("New chat started! 👋 I'm Bendigo AI. How can I help?","ai")}await loadConversations()}catch(e){console.error("Could not delete conversation",e)}}
 
 /* Workspace dashboard navigation */
-const dashboardButton = document.getElementById("dashboardButton");
-const startBuildingButton = document.getElementById("startBuildingButton");
-const openWorkspaceButton = document.getElementById("openWorkspaceButton");
+
+/* Bendigo AI workspace navigation */
+const dashboardButton=document.getElementById("dashboardButton");
+const startBuildingButton=document.getElementById("startBuildingButton");
+const openWorkspaceButton=document.getElementById("openWorkspaceButton");
+const mainChat=document.querySelector(".main-chat");
 function goToWorkspace(target){
   const el=document.getElementById(target);
   if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
 }
-if(dashboardButton) dashboardButton.addEventListener("click",()=>goToWorkspace("dashboard"));
+function setActiveNav(button){
+  document.querySelectorAll(".side-link").forEach(b=>b.classList.remove("active"));
+  if(button) button.classList.add("active");
+}
+if(dashboardButton) dashboardButton.addEventListener("click",()=>{goToWorkspace("dashboard");setActiveNav(dashboardButton)});
 if(startBuildingButton) startBuildingButton.addEventListener("click",()=>goToWorkspace("chat"));
 if(openWorkspaceButton) openWorkspaceButton.addEventListener("click",()=>goToWorkspace("codeLab"));
+if(gamesButton) gamesButton.addEventListener("click",()=>{openGame("gameCenter");setActiveNav(gamesButton)});
+if(studioButton) studioButton.addEventListener("click",()=>{designStudio.scrollIntoView({behavior:"smooth",block:"start"});setTool("brush");setActiveNav(studioButton)});
+if(historyButton) historyButton.addEventListener("click",async()=>{await loadConversations();conversationList?.scrollIntoView({behavior:"smooth",block:"nearest"});setActiveNav(historyButton)});
+if(settingsButton) settingsButton.addEventListener("click",()=>{addMessage("Settings: 🎤 Voice input and 🔊 spoken replies are enabled. You can use Bendigo AI without an API key when the local fallback is available.","ai");goToWorkspace("chat");setActiveNav(settingsButton)});
+if(aboutButton) aboutButton.addEventListener("click",()=>{addMessage("Bendigo AI is your workspace for AI chat, coding, design, and games. Music Studio has been removed.","ai");goToWorkspace("chat");setActiveNav(aboutButton)});
+const builderButton=document.createElement("button");
+builderButton.type="button";builderButton.className="side-link";builderButton.textContent="✦ Builder";
+builderButton.addEventListener("click",()=>{goToWorkspace("codeLab");setActiveNav(builderButton)});
+const projectsButton=document.createElement("button");
+projectsButton.type="button";projectsButton.className="side-link";projectsButton.textContent="▦ Projects";
+projectsButton.addEventListener("click",()=>{goToWorkspace("dashboard");setActiveNav(projectsButton)});
+const githubButton=document.createElement("button");
+githubButton.type="button";githubButton.className="side-link";githubButton.textContent="◉ GitHub";
+githubButton.addEventListener("click",()=>{addMessage("GitHub: Bendigo-website is connected to your Bendigo AI workspace. Use the Code Lab to prepare changes before publishing.","ai");goToWorkspace("codeLab");setActiveNav(githubButton)});
+const menu=document.querySelector(".side-section");
+if(menu){
+  const settingsRef=document.getElementById("settingsButton");
+  menu.insertBefore(builderButton,settingsRef);
+  menu.insertBefore(projectsButton,settingsRef);
+  menu.insertBefore(githubButton,settingsRef);
+}
+setActiveNav(dashboardButton);
