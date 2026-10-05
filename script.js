@@ -15,6 +15,19 @@ function addMessage(text, type) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-GH";
+  speech.rate = 1;
+  speech.pitch = 1;
+
+  window.speechSynthesis.speak(speech);
+}
+
 async function sendMessage() {
   const text = input.value.trim();
 
@@ -46,6 +59,7 @@ async function sendMessage() {
 
     addMessage(data.reply, "ai");
     history.push({ role: "assistant", content: data.reply });
+    speak(data.reply);
   } catch (error) {
     console.error(error);
     addMessage(
@@ -106,6 +120,7 @@ if (SpeechRecognition) {
 clearButton.addEventListener("click", () => {
   chat.innerHTML = "";
   history.length = 0;
+  window.speechSynthesis.cancel();
   addMessage("Chat cleared. Hello again! 👋", "ai");
   input.focus();
 });
