@@ -68,3 +68,15 @@ async function loadConversations(){if(!conversationList)return;try{const r=await
 function renderConversations(){if(!conversationList)return;const query=(chatSearch?.value||"").trim().toLowerCase();conversationList.innerHTML="";if(!query){conversationList.style.display="none";return}conversationList.style.display="block";const matches=savedConversations.filter(c=>(c.title||"").toLowerCase().includes(query));if(!matches.length){conversationList.innerHTML='<div class="conversation-empty">No matching chats</div>';return}matches.forEach(c=>{const row=document.createElement("div");row.className="conversation-row"+(c.session_id===sessionId?" active":"");const open=document.createElement("button");open.type="button";open.className="conversation-item";open.textContent=c.title;open.title=c.title;open.addEventListener("click",()=>switchConversation(c.session_id));const del=document.createElement("button");del.type="button";del.className="conversation-delete";del.textContent="×";del.title="Delete chat";del.addEventListener("click",async e=>{e.stopPropagation();await deleteConversation(c.session_id)});row.append(open,del);conversationList.appendChild(row)})}
 async function switchConversation(id){sessionId=id;localStorage.setItem("bendigoSessionId",sessionId);chat.innerHTML="";history.length=0;await loadSavedChat();await loadConversations();input.focus()}
 async function deleteConversation(id){try{const r=await fetch("/api/chat/conversations/"+encodeURIComponent(id),{method:"DELETE"});if(!r.ok)throw new Error("Delete failed");if(id===sessionId){sessionId=crypto.randomUUID();localStorage.setItem("bendigoSessionId",sessionId);chat.innerHTML="";history.length=0;addMessage("New chat started! 👋 I'm Bendigo AI. How can I help?","ai")}await loadConversations()}catch(e){console.error("Could not delete conversation",e)}}
+
+/* Workspace dashboard navigation */
+const dashboardButton = document.getElementById("dashboardButton");
+const startBuildingButton = document.getElementById("startBuildingButton");
+const openWorkspaceButton = document.getElementById("openWorkspaceButton");
+function goToWorkspace(target){
+  const el=document.getElementById(target);
+  if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+}
+if(dashboardButton) dashboardButton.addEventListener("click",()=>goToWorkspace("dashboard"));
+if(startBuildingButton) startBuildingButton.addEventListener("click",()=>goToWorkspace("chat"));
+if(openWorkspaceButton) openWorkspaceButton.addEventListener("click",()=>goToWorkspace("codeLab"));
