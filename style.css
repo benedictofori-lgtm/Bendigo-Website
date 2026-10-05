@@ -617,3 +617,15 @@ header h1{font-size:17px;letter-spacing:-.3px}
 .github-files{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
 .github-file{padding:9px 10px;border:1px solid rgba(80,130,205,.16);border-radius:8px;background:rgba(9,27,51,.55);color:#a6b7cf;font-size:9px}
 @media(max-width:750px){.github-files{grid-template-columns:repeat(2,1fr)}.github-head{align-items:flex-start;flex-direction:column}}
+
+
+/* AI Builder */
+.builder-panel{margin:14px 20px 10px;padding:20px;border:1px solid rgba(62,132,255,.28);border-radius:12px;background:rgba(4,17,37,.58);backdrop-filter:blur(14px)}
+.builder-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:13px}
+.builder-head h2{margin:0;color:#f5f8ff;font-size:22px}.builder-head p{margin:5px 0 0;color:#8499b7;font-size:11px}
+.builder-badge{padding:6px 9px;border-radius:999px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#68d99a;font-size:8px;font-weight:800;letter-spacing:1px}
+.builder-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.builder-grid button{min-height:94px;padding:13px;text-align:left;border:1px solid rgba(67,126,255,.18);border-radius:10px;background:rgba(8,27,52,.58);color:#fff;cursor:pointer;transition:.18s}
+.builder-grid button:hover{transform:translateY(-2px);border-color:rgba(91,145,255,.55);box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.builder-grid b{display:block;font-size:20px;margin-bottom:7px}.builder-grid strong{display:block;font-size:11px}.builder-grid small{display:block;margin-top:3px;color:#758aa8;font-size:8px}
+@media(max-width:800px){.builder-grid{grid-template-columns:repeat(2,1fr)}}
