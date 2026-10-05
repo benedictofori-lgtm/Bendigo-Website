@@ -26,11 +26,11 @@
 <div class="studio-toolbar">
 <button id="brushTool" type="button">✏️ Brush</button><button id="eraserTool" type="button">🧽 Eraser</button><button id="lineTool" type="button">📏 Line</button><button id="rectTool" type="button">▭ Rectangle</button><button id="circleTool" type="button">⭕ Circle</button><button id="textTool" type="button">🔤 Text</button>
 <label class="studio-color">Color <input id="drawColor" type="color" value="#60a5fa"></label><label class="studio-size">Size <input id="brushSize" type="range" min="1" max="40" value="5"><output id="brushSizeValue">5</output></label>
-<button id="undoDesign" type="button">↶ Undo</button><button id="redoDesign" type="button">↷ Redo</button><button id="clearCanvas" type="button">🗑️ Clear</button><button id="downloadCanvas" type="button">⬇️ Save PNG</button>
+<button id="undoDesign" type="button">↶ Undo</button><button id="redoDesign" type="button">↷ Redo</button><button id="clearCanvas" type="button">🗑️ Clear</button><button id="backgroundCanvas" type="button">🌈 Background</button><button id="stickerTool" type="button">✨ Sticker</button><button id="downloadCanvas" type="button">⬇️ Save PNG</button>
 <label class="upload-design">🖼️ Add Image <input id="imageUpload" type="file" accept="image/*"></label>
 </div>
 <div class="canvas-wrap"><canvas id="designCanvas" width="900" height="520"></canvas></div>
-<p id="studioHint" class="studio-hint">Choose a tool and draw on the canvas. For Text, click the canvas and type your message.</p>
+<div class="studio-presets"><button type="button" data-bg="#ffffff">⬜ White</button><button type="button" data-bg="#0f172a">⬛ Dark</button><button type="button" data-bg="#dbeafe">🩵 Blue</button><button type="button" data-bg="#fef3c7">🟨 Gold</button><button type="button" data-bg="#dcfce7">🟩 Green</button></div><p id="studioHint" class="studio-hint">Choose a tool and draw on the canvas. For Text, click the canvas and type your message.</p>
 </section>
 <section id="gameCenter" class="game-center">
 <div class="game-center-head"><div><h2>🎮 Bendigo Game Center</h2><p>Choose a game and start playing.</p></div><span>3 GAMES</span></div>
