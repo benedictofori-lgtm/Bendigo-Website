@@ -328,3 +328,6 @@ header{padding:18px 32px;min-height:82px;background:rgba(4,14,31,.2);border-bott
 .workspace-stats span{font-size:11px;color:#8799b2}
 @media(max-width:900px){.workspace-hero{padding:28px}.workspace-hero h2{font-size:38px}.workspace-stats{grid-template-columns:repeat(2,1fr)}.workspace-ai{display:none}}
 @media(max-width:600px){.workspace-dashboard{padding:22px 14px 5px}.workspace-hero h2{font-size:32px}.workspace-stats{grid-template-columns:1fr}.workspace-hero{padding:24px 20px}}
+
+.bendigo-mark{display:grid;place-items:center;font-weight:900;letter-spacing:-1px;color:#fff;background:linear-gradient(135deg,#4b8cff,#6f5cff);box-shadow:0 0 24px rgba(86,105,255,.35)}
+.side-link.active{background:rgba(77,92,135,.28);color:#fff;border:1px solid rgba(116,132,174,.15)}
