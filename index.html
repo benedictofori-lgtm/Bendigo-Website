@@ -11,7 +11,7 @@
 <aside class="sidebar">
 <div class="brand"><div class="logo">🤖</div><div><strong>Bendigo AI</strong><span>Assistant</span></div></div>
 <button id="newChatButton" class="side-button">＋ New Chat</button>
-<div class="side-section"><p>MENU</p><button id="historyButton" class="side-link">🕘 Chat History</button><button id="settingsButton" class="side-link">⚙️ Settings</button><button id="aboutButton" class="side-link">ℹ️ About Bendigo</button></div>
+<div class="side-section"><p>MENU</p><button id="gamesButton" class="side-link">🎮 Game Center</button><button id="historyButton" class="side-link">🕘 Chat History</button><button id="settingsButton" class="side-link">⚙️ Settings</button><button id="aboutButton" class="side-link">ℹ️ About Bendigo</button></div>
 <div class="sidebar-bottom"><span>● Online</span><small>No API key required</small></div>
 </aside>
 
@@ -21,19 +21,28 @@
 <div class="input-area"><input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off"><button id="voiceButton" type="button">🎤</button><button id="sendButton" type="button">Send</button></div>
 <p id="voiceStatus" class="voice-status"></p><button id="clearButton" class="clear" type="button">Clear chat</button>
 
-<section class="game-lab">
+<section id="gameCenter" class="game-center">
+<div class="game-center-head"><div><h2>🎮 Bendigo Game Center</h2><p>Choose a game and start playing.</p></div><span>3 GAMES</span></div>
+<div class="game-cards">
+<button class="game-card" data-game="gameLab"><b>🏎️</b><strong>Racing</strong><small>Avoid the cars and beat your score.</small></button>
+<button class="game-card" data-game="fightLab"><b>🥊</b><strong>Fighter</strong><small>Move, attack and defend.</small></button>
+<button class="game-card" data-game="adventureLab"><b>🗺️</b><strong>Adventure</strong><small>Collect stars and reach the finish.</small></button>
+</div>
+</section>
+
+<section id="gameLab" class="game-lab">
 <div class="game-header"><div><h2>🏎️ Bendigo Racing</h2><p>Use ← → or A/D to move. Avoid the cars!</p></div><div class="game-score">Score: <span id="gameScore">0</span></div></div>
 <div id="gameArea" class="game-area" tabindex="0"><div class="road-line line-one"></div><div class="road-line line-two"></div><div id="playerCar" class="car player-car">🚗</div><div id="enemyCar" class="car enemy-car">🚙</div><div id="gameMessage" class="game-message">Press Start Race</div></div>
 <div class="game-controls"><button id="startGameButton" type="button">🏁 Start Race</button><button id="leftButton" type="button">⬅️</button><button id="rightButton" type="button">➡️</button></div>
 </section>
 
-<section class="fight-lab">
+<section id="fightLab" class="fight-lab">
 <div class="game-header"><div><h2>🥊 Bendigo Fighter</h2><p>Move with A/D. Attack with Space. Defend with S.</p></div><div class="fight-health"><span>YOU</span><div class="health"><i id="playerHealth"></i></div><span>CPU</span><div class="health"><i id="cpuHealth"></i></div></div></div>
 <div id="fightArena" class="fight-arena" tabindex="0"><div class="fighter player-fighter" id="playerFighter">🥊</div><div class="fighter cpu-fighter" id="cpuFighter">🤖</div><div id="fightMessage" class="fight-message">Press Start Fight</div></div>
 <div class="fight-controls"><button id="startFightButton" type="button">🥊 Start Fight</button><button id="attackButton" type="button">👊 Attack</button><button id="defendButton" type="button">🛡️ Defend</button></div>
 </section>
 
-<section class="adventure-lab">
+<section id="adventureLab" class="adventure-lab">
 <div class="game-header"><div><h2>🗺️ Bendigo Adventure</h2><p>Move with ← → or A/D. Jump with Space. Collect ⭐ and reach 🏁!</p></div><div class="game-score">Stars: <span id="adventureScore">0</span></div></div>
 <div id="adventureArea" class="adventure-area" tabindex="0">
 <div class="adventure-ground"></div><div id="adventurePlayer" class="adventure-player">🧑‍🚀</div>
