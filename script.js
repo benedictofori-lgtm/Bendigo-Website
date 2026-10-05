@@ -11,51 +11,43 @@ function addMessage(text, type) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-function getAIResponse(text) {
-  const message = text.toLowerCase();
-
-  if (message.includes("hello") || message.includes("hi")) {
-    return "Hello! 👋 Welcome to Bendigo AI.";
-  }
-
-  if (message.includes("your name")) {
-    return "My name is Bendigo AI. 🤖";
-  }
-
-  if (message.includes("how are you")) {
-    return "I'm doing great! Thanks for asking. 😊";
-  }
-
-  if (message.includes("ghana")) {
-    return "Ghana is a beautiful country in West Africa. 🇬🇭";
-  }
-
-  if (message.includes("game")) {
-    return "I can help you build a game with Python, HTML, CSS and JavaScript! 🎮";
-  }
-
-  if (message.includes("website")) {
-    return "Bendigo Website is my home! 🌐";
-  }
-
-  if (message.includes("help")) {
-    return "Sure! Tell me what you want to learn or create.";
-  }
-
-  return "I'm still learning. Try asking me about games, websites, Ghana, or Python!";
-}
-
-function sendMessage() {
+async function sendMessage() {
   const text = input.value.trim();
 
   if (!text) return;
 
   addMessage(text, "user");
   input.value = "";
+  sendButton.disabled = true;
+  sendButton.textContent = "Thinking...";
 
-  setTimeout(() => {
-    addMessage(getAIResponse(text), "ai");
-  }, 400);
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Something went wrong.");
+    }
+
+    addMessage(data.reply, "ai");
+  } catch (error) {
+    console.error(error);
+    addMessage(
+      "Sorry, Bendigo AI could not respond right now. The server may not be connected yet.",
+      "ai"
+    );
+  } finally {
+    sendButton.disabled = false;
+    sendButton.textContent = "Send";
+    input.focus();
+  }
 }
 
 sendButton.addEventListener("click", sendMessage);
@@ -69,4 +61,5 @@ input.addEventListener("keydown", (event) => {
 clearButton.addEventListener("click", () => {
   chat.innerHTML = "";
   addMessage("Chat cleared. Hello again! 👋", "ai");
+  input.focus();
 });
