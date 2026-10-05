@@ -4,6 +4,10 @@ const sendButton = document.getElementById("sendButton");
 const voiceButton = document.getElementById("voiceButton");
 const voiceStatus = document.getElementById("voiceStatus");
 const clearButton = document.getElementById("clearButton");
+const newChatButton = document.getElementById("newChatButton");
+const historyButton = document.getElementById("historyButton");
+const settingsButton = document.getElementById("settingsButton");
+const aboutButton = document.getElementById("aboutButton");
 
 const history = [];
 
@@ -73,12 +77,45 @@ async function sendMessage() {
   }
 }
 
+function startNewChat() {
+  chat.innerHTML = "";
+  history.length = 0;
+  window.speechSynthesis.cancel();
+  addMessage("New chat started! 👋 I'm Bendigo AI. How can I help?", "ai");
+  input.focus();
+}
+
 sendButton.addEventListener("click", sendMessage);
 
 input.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     sendMessage();
   }
+});
+
+newChatButton.addEventListener("click", startNewChat);
+
+historyButton.addEventListener("click", () => {
+  addMessage(
+    "Chat History is stored only while this page is open. Your current conversation has " +
+      history.length +
+      " messages. 🕘",
+    "ai"
+  );
+});
+
+settingsButton.addEventListener("click", () => {
+  addMessage(
+    "Settings: 🎤 Voice input and 🔊 spoken replies are enabled. No API key is required.",
+    "ai"
+  );
+});
+
+aboutButton.addEventListener("click", () => {
+  addMessage(
+    "Bendigo AI is the assistant for the Bendigo Website. 🤖 It uses built-in responses and browser features, so no API key is needed.",
+    "ai"
+  );
 });
 
 const SpeechRecognition =
@@ -117,10 +154,4 @@ if (SpeechRecognition) {
   voiceStatus.textContent = "Voice input is not supported by this browser.";
 }
 
-clearButton.addEventListener("click", () => {
-  chat.innerHTML = "";
-  history.length = 0;
-  window.speechSynthesis.cancel();
-  addMessage("Chat cleared. Hello again! 👋", "ai");
-  input.focus();
-});
+clearButton.addEventListener("click", startNewChat);
