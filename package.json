@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "openai": "^6.17.0"
+    "openai": "^6.17.0",
+    "better-sqlite3": "^12.4.1"
   }
 }
