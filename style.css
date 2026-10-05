@@ -223,3 +223,15 @@ header p{
   .chat{padding:24px 16px}
   .input-area{width:calc(100% - 24px)}
 }
+
+
+/* Remove the rotating image background */
+body::before{
+  display:none;
+}
+body::after{
+  background:
+    radial-gradient(700px 480px at 72% 46%,rgba(39,64,180,.34),transparent 70%),
+    radial-gradient(520px 420px at 58% 78%,rgba(25,45,120,.18),transparent 72%),
+    linear-gradient(180deg,#090a0f,#080910);
+}
