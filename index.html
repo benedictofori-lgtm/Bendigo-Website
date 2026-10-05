@@ -11,7 +11,7 @@
 <aside class="sidebar">
 <div class="brand"><div class="logo">🤖</div><div><strong>Bendigo AI</strong><span>Assistant</span></div></div>
 <button id="newChatButton" class="side-button">＋ New Chat</button>
-<div class="side-section"><p>MENU</p><button id="gamesButton" class="side-link">🎮 Game Center</button><button id="historyButton" class="side-link">🕘 Chat History</button><button id="settingsButton" class="side-link">⚙️ Settings</button><button id="aboutButton" class="side-link">ℹ️ About Bendigo</button></div>
+<div class="side-section"><p>MENU</p><button id="gamesButton" class="side-link">🎮 Game Center</button><button id="studioButton" class="side-link">🎨 Design Studio</button><button id="historyButton" class="side-link">🕘 Chat History</button><button id="settingsButton" class="side-link">⚙️ Settings</button><button id="aboutButton" class="side-link">ℹ️ About Bendigo</button></div>
 <div class="sidebar-bottom"><span>● Online</span><small>No API key required</small></div>
 </aside>
 
@@ -21,6 +21,17 @@
 <div class="input-area"><input id="userInput" type="text" placeholder="Type or speak your message..." autocomplete="off"><button id="voiceButton" type="button">🎤</button><button id="sendButton" type="button">Send</button></div>
 <p id="voiceStatus" class="voice-status"></p><button id="clearButton" class="clear" type="button">Clear chat</button>
 
+<section id="designStudio" class="design-studio">
+<div class="studio-head"><div><h2>🎨 Bendigo Design Studio</h2><p>Draw, add shapes and text, then save your creation.</p></div><span>CANVAS</span></div>
+<div class="studio-toolbar">
+<button id="brushTool" type="button">✏️ Brush</button><button id="eraserTool" type="button">🧽 Eraser</button><button id="lineTool" type="button">📏 Line</button><button id="rectTool" type="button">▭ Rectangle</button><button id="circleTool" type="button">⭕ Circle</button><button id="textTool" type="button">🔤 Text</button>
+<label class="studio-color">Color <input id="drawColor" type="color" value="#60a5fa"></label><label class="studio-size">Size <input id="brushSize" type="range" min="1" max="40" value="5"><output id="brushSizeValue">5</output></label>
+<button id="undoDesign" type="button">↶ Undo</button><button id="redoDesign" type="button">↷ Redo</button><button id="clearCanvas" type="button">🗑️ Clear</button><button id="downloadCanvas" type="button">⬇️ Save PNG</button>
+<label class="upload-design">🖼️ Add Image <input id="imageUpload" type="file" accept="image/*"></label>
+</div>
+<div class="canvas-wrap"><canvas id="designCanvas" width="900" height="520"></canvas></div>
+<p id="studioHint" class="studio-hint">Choose a tool and draw on the canvas. For Text, click the canvas and type your message.</p>
+</section>
 <section id="gameCenter" class="game-center">
 <div class="game-center-head"><div><h2>🎮 Bendigo Game Center</h2><p>Choose a game and start playing.</p></div><span>3 GAMES</span></div>
 <div class="game-cards">
