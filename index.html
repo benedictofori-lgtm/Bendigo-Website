@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bendigo Website - AI Chatbot</title>
+  <title>Bendigo Website - AI Chatbot & Code Lab</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -37,7 +37,7 @@
         <div class="header-logo">🤖</div>
         <div>
           <h1>Bendigo AI</h1>
-          <p>Your simple AI chatbot</p>
+          <p>Your simple AI chatbot + coding lab</p>
         </div>
       </header>
 
@@ -53,6 +53,50 @@
 
       <p id="voiceStatus" class="voice-status"></p>
       <button id="clearButton" class="clear" type="button">Clear chat</button>
+
+      <section class="code-lab">
+        <div class="code-lab-header">
+          <div>
+            <h2>💻 Bendigo Code Lab</h2>
+            <p>Write HTML, CSS and JavaScript, then run it instantly.</p>
+          </div>
+          <button id="runCodeButton" type="button">▶ Run Code</button>
+        </div>
+
+        <div class="editor-grid">
+          <div class="editor-box">
+            <label for="htmlCode">HTML</label>
+            <textarea id="htmlCode" spellcheck="false"><h2>Hello Bendigo! 👋</h2>
+<p>My first webpage is working.</p>
+<button onclick="sayHello()">Click Me</button></textarea>
+          </div>
+
+          <div class="editor-box">
+            <label for="cssCode">CSS</label>
+            <textarea id="cssCode" spellcheck="false">body {
+  font-family: Arial, sans-serif;
+  padding: 25px;
+  text-align: center;
+}
+button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}</textarea>
+          </div>
+
+          <div class="editor-box">
+            <label for="jsCode">JavaScript</label>
+            <textarea id="jsCode" spellcheck="false">function sayHello() {
+  alert("Hello from Bendigo Code Lab!");
+}</textarea>
+          </div>
+        </div>
+
+        <div class="preview-title">Live Preview</div>
+        <iframe id="codePreview" title="Code preview" sandbox="allow-scripts"></iframe>
+      </section>
     </section>
   </main>
   <script src="script.js"></script>
