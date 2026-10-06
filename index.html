@@ -37,10 +37,10 @@
 <div class="workspace-ai">AI</div>
 </div>
 <div class="workspace-stats">
-<div><small>PROJECTS</small><strong>3</strong><span>Active projects</span><b>›</b></div>
-<div><small>FILES</small><strong>12</strong><span>Total files</span><b>›</b></div>
-<div><small>PROGRESS</small><strong>68%</strong><span>Overall completion</span><b>›</b></div>
-<div><small>STATUS</small><strong>Online</strong><span>All systems operational</span><b>↗</b></div>
+<div><small>PROJECTS</small><strong id="statProjects">3</strong><span>Active projects</span><b>›</b></div>
+<div><small>FILES</small><strong id="statFiles">12</strong><span>Total files</span><b>›</b></div>
+<div><small>AI STATUS</small><strong id="statAI">Checking…</strong><span id="statAISub">Backend status</span><b>↗</b></div>
+<div><small>GITHUB</small><strong id="statGithub">Checking…</strong><span id="statGithubSub">Repository status</span><b>↗</b></div>
 </div>
 </section><section id="projects" class="projects-panel">
   <div class="projects-head">
@@ -53,7 +53,7 @@
 <div id="typingIndicator" class="typing-indicator" aria-live="polite"><span></span><span></span><span></span> Bendigo is thinking...</div><p id="voiceStatus" class="voice-status"></p><button id="clearButton" class="clear" type="button">Clear chat</button>
 
 <section id="builder" class="builder-panel"><div class="builder-head"><div><div class="workspace-kicker">AI BUILDER</div><h2>Build something new</h2><p>Start with an idea and turn it into a real project.</p></div><span class="builder-badge">READY</span></div><div class="builder-grid"><button type="button" data-builder="website"><b>🌐</b><strong>Website</strong><small>Build a modern website</small></button><button type="button" data-builder="game"><b>🎮</b><strong>Game Coding</strong><small>Build and code your own game</small></button><button type="button" data-builder="python"><b>🐍</b><strong>Python</strong><small>Start a Python project</small></button><button type="button" data-builder="design"><b>🎨</b><strong>Design</strong><small>Create a visual project</small></button></div></section><section id="github" class="github-panel"><div class="github-head"><div><div class="workspace-kicker">REPOSITORY</div><h2>GitHub Workspace</h2><p>Work with your Bendigo AI project from one connected coding workspace.</p></div><a class="github-open" href="https://github.com/benedictofori-lgtm/Bendigo-website" target="_blank" rel="noopener">Open repository ↗</a></div><div class="github-status"><span class="github-dot"></span><div><strong>Bendigo-website</strong><small>benedictofori-lgtm / main</small></div><b id="githubConnectionMode">CONNECTED</b></div><div class="github-actions"><button id="githubSyncButton" type="button">↻ Sync repository</button><button id="githubBranchButton" type="button">＋ New branch</button><button id="githubCommitButton" type="button">✓ Commit changes</button><button id="githubPrButton" type="button">↗ Pull request</button></div><div class="github-meta"><span>Repository: <b>benedictofori-lgtm/Bendigo-website</b></span><span>Branch: <b id="githubBranchName">main</b></span><span id="githubSyncStatus">Ready to sync</span></div><div id="githubFiles" class="github-files"><div class="github-file">Loading repository files…</div></div></section><section id="codeLab" class="code-lab">
-<div class="code-lab-header"><div><h2>💻 Bendigo Code Lab</h2><p>Build with HTML, CSS and JavaScript and preview your work instantly.</p></div><button id="runCodeButton" type="button">▶ Run Code</button></div>
+<div class="code-lab-header"><div><h2>💻 Bendigo Code Lab</h2><p>Build with HTML, CSS and JavaScript and preview your work instantly.</p></div><div class="code-status" id="codeStatus">Ready</div><button id="runCodeButton" type="button">▶ Run Code</button></div>
 <div class="editor-grid">
 <div class="editor-box"><label for="htmlCode">HTML</label><textarea id="htmlCode" spellcheck="false"><h2>Hello Bendigo! 👋</h2>
 <p>My first webpage is working.</p>
