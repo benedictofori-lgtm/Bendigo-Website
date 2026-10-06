@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 682" role="img" aria-labelledby="title">
+  <title id="title">Bendigo AI Designs</title>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1">
+      <stop offset="0" stop-color="#020f2b"/>
+      <stop offset="0.5" stop-color="#061a42"/>
+      <stop offset="1" stop-color="#020f2b"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" x2="1">
+      <stop offset="0" stop-color="#24e7ff"/>
+      <stop offset="0.55" stop-color="#5bdcff"/>
+      <stop offset="1" stop-color="#1678ff"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="2048" height="682" fill="#fff"/>
+  <rect y="210" width="2048" height="262" fill="url(#bg)"/>
+  <path d="M0 341H300 M1748 341H2048" stroke="#19bfff" stroke-width="3" filter="url(#glow)"/>
+  <circle cx="1024" cy="210" r="8" fill="#39cfff" filter="url(#glow)"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="800" text-anchor="middle">
+    <text x="700" y="382" font-size="190" fill="#fff">Bendigo</text>
+    <text x="1120" y="382" font-size="190" fill="url(#blue)">AI</text>
+    <text x="1510" y="382" font-size="190" fill="url(#blue)">Designs</text>
+  </g>
+  <path d="M1048 315l10 22 22 10-22 10-10 22-10-22-22-10 22-10z" fill="#fff"/>
+</svg>
