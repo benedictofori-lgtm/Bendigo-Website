@@ -214,6 +214,7 @@ newProjectButton?.addEventListener("click", () => {
   projects.unshift({name: name.trim(), type: "New project"});
   localStorage.setItem("bendigoProjects", JSON.stringify(projects.slice(0, 12)));
   loadProjects();
+  updateProjectStat();
 });
 
 function runCode() {
@@ -305,7 +306,37 @@ $("githubPrButton")?.addEventListener("click", () => {
   addMessage("Pull request action is ready for a secure GitHub connection.", "ai");
 });
 
+async function checkSystemHealth() {
+  try {
+    const response = await fetch("/api/health");
+    const data = await response.json();
+    const ai = $("statAI");
+    const aiSub = $("statAISub");
+    if (ai) ai.textContent = data.aiConfigured ? "READY" : "LOCAL";
+    if (aiSub) aiSub.textContent = data.aiConfigured ? "AI service connected" : "Built-in fallback";
+    if (data.github?.connected) {
+      const g = $("statGithub");
+      const gs = $("statGithubSub");
+      if (g) g.textContent = data.github.writeEnabled ? "CONNECTED" : "READ-ONLY";
+      if (gs) gs.textContent = data.github.writeEnabled ? "Write access ready" : "Public repository sync";
+    }
+  } catch {
+    const ai = $("statAI");
+    if (ai) ai.textContent = "OFFLINE";
+  }
+}
+
+function updateProjectStat() {
+  try {
+    const projects = JSON.parse(localStorage.getItem("bendigoProjects") || "[]");
+    const stat = $("statProjects");
+    if (stat) stat.textContent = projects.length || 0;
+  } catch {}
+}
+
 loadProjects();
+updateProjectStat();
 loadChatHistory();
 runCode();
 refreshGithubWorkspace();
+checkSystemHealth();
