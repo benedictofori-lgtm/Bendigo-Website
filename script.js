@@ -80,6 +80,7 @@ function goToWorkspace(target){
   const el=document.getElementById(target);
   if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
 }
+document.querySelectorAll("[data-workspace-target]").forEach(button=>{button.addEventListener("click",()=>{goToWorkspace(button.dataset.workspaceTarget);setActiveNav(button);});});
 function setActiveNav(button){
   document.querySelectorAll(".side-link").forEach(b=>b.classList.remove("active"));
   if(button) button.classList.add("active");
