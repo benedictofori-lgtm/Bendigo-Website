@@ -171,8 +171,11 @@ app.post("/api/chat", async (req, res) => {
       updateConversation.run(sessionId);
       return res.json({ reply });
     } catch (error) {
-      console.error("Bendigo AI error:", error.message);
-      return res.status(502).json({ error: "Bendigo AI could not reach the AI service. Check the server API configuration." });
+      console.error("Bendigo AI service error:", error.message);
+      const fallback = getAIResponse(message, history);
+      saveMessage.run(sessionId, "assistant", fallback);
+      updateConversation.run(sessionId);
+      return res.json({ reply: fallback, aiService: false });
     }
   }
 
