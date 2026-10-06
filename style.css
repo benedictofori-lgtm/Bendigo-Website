@@ -629,3 +629,13 @@ header h1{font-size:17px;letter-spacing:-.3px}
 .builder-grid button:hover{transform:translateY(-2px);border-color:rgba(91,145,255,.55);box-shadow:0 10px 25px rgba(0,0,0,.18)}
 .builder-grid b{display:block;font-size:20px;margin-bottom:7px}.builder-grid strong{display:block;font-size:11px}.builder-grid small{display:block;margin-top:3px;color:#758aa8;font-size:8px}
 @media(max-width:800px){.builder-grid{grid-template-columns:repeat(2,1fr)}}
+
+
+/* Bendigo AI GitHub workspace */
+.github-actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 12px}
+.github-actions button{border:1px solid rgba(96,165,250,.35);background:rgba(9,25,55,.72);color:#e8f0ff;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer}
+.github-actions button:hover{border-color:#6d5dfc;background:rgba(39,55,105,.8);transform:translateY(-1px)}
+.github-meta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px;color:#8fa6c7;font-size:12px}
+.github-meta span{padding:7px 10px;border:1px solid rgba(96,165,250,.18);border-radius:999px;background:rgba(4,14,32,.55)}
+.github-meta b{color:#dce8ff}
+#githubSyncStatus{color:#7dd3fc}
