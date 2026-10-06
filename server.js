@@ -181,6 +181,52 @@ app.post("/api/chat", async (req, res) => {
   res.json({ reply });
 });
 
+
+// GitHub workspace: read-only repository sync for the connected Bendigo project.
+// A future GitHub OAuth/App connection can replace these public API calls for private repos.
+const GITHUB_REPO = process.env.GITHUB_REPO || "benedictofori-lgtm/Bendigo-website";
+
+app.get("/api/github/status", async (req, res) => {
+  try {
+    const response = await fetch("https://api.github.com/repos/" + GITHUB_REPO, {
+      headers: { "Accept": "application/vnd.github+json", "User-Agent": "Bendigo-AI" }
+    });
+    if (!response.ok) return res.status(response.status).json({ error: "GitHub repository could not be reached." });
+    const repoData = await response.json();
+    res.json({
+      connected: true,
+      repository: repoData.full_name,
+      branch: repoData.default_branch,
+      private: Boolean(repoData.private),
+      url: repoData.html_url
+    });
+  } catch (error) {
+    console.error("GitHub status error:", error.message);
+    res.status(502).json({ connected: false, error: "GitHub is not reachable right now." });
+  }
+});
+
+app.get("/api/github/files", async (req, res) => {
+  try {
+    const response = await fetch("https://api.github.com/repos/" + GITHUB_REPO + "/contents", {
+      headers: { "Accept": "application/vnd.github+json", "User-Agent": "Bendigo-AI" }
+    });
+    if (!response.ok) return res.status(response.status).json({ error: "GitHub files could not be loaded." });
+    const items = await response.json();
+    const files = Array.isArray(items) ? items.map(item => ({
+      name: item.name,
+      path: item.path,
+      type: item.type,
+      size: item.size,
+      url: item.html_url
+    })) : [];
+    res.json({ repository: GITHUB_REPO, files });
+  } catch (error) {
+    console.error("GitHub files error:", error.message);
+    res.status(502).json({ error: "GitHub files could not be loaded right now." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Bendigo AI is running on port ${port}`);
 });
