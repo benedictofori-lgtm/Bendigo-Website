@@ -189,6 +189,36 @@ app.post("/api/chat", async (req, res) => {
 // A future GitHub OAuth/App connection can replace these public API calls for private repos.
 const GITHUB_REPO = process.env.GITHUB_REPO || "benedictofori-lgtm/Bendigo-website";
 
+app.get("/api/search", async (req, res) => {
+  const query = typeof req.query.q === "string" ? req.query.q.trim().slice(0, 200) : "";
+  if (!query) return res.status(400).json({ error: "Enter something to search for." });
+
+  try {
+    const url = "https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query);
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 Bendigo-AI/1.0",
+        "Accept": "text/html"
+      }
+    });
+    if (!response.ok) throw new Error("Search provider returned " + response.status);
+    const html = await response.text();
+    const results = [];
+    const pattern = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\\s\\S]*?)<\\/a>/gi;
+    let match;
+    while ((match = pattern.exec(html)) && results.length < 8) {
+      const title = match[2].replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
+      let link = match[1];
+      if (link.startsWith("//")) link = "https:" + link;
+      if (title && link) results.push({ title, url: link });
+    }
+    res.json({ query, results });
+  } catch (error) {
+    console.error("Search error:", error.message);
+    res.status(502).json({ error: "Web search is temporarily unavailable." });
+  }
+});
+
 app.get("/api/github/status", async (req, res) => {
   try {
     const response = await fetch("https://api.github.com/repos/" + GITHUB_REPO, {
@@ -201,7 +231,8 @@ app.get("/api/github/status", async (req, res) => {
       repository: repoData.full_name,
       branch: repoData.default_branch,
       private: Boolean(repoData.private),
-      url: repoData.html_url
+      url: repoData.html_url,
+      writeEnabled: Boolean(process.env.GITHUB_TOKEN)
     });
   } catch (error) {
     console.error("GitHub status error:", error.message);
