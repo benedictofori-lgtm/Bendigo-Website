@@ -639,3 +639,48 @@ header h1{font-size:17px;letter-spacing:-.3px}
 .github-meta span{padding:7px 10px;border:1px solid rgba(96,165,250,.18);border-radius:999px;background:rgba(4,14,32,.55)}
 .github-meta b{color:#dce8ff}
 #githubSyncStatus{color:#7dd3fc}
+
+
+/* FINAL SCROLL + LARGE SURFACE FIX */
+html{scroll-behavior:smooth}
+html,body{min-height:100%;height:auto}
+body{display:block;overflow-x:hidden;overflow-y:auto;padding:0}
+.app{height:auto;min-height:100vh;overflow:visible;display:grid;align-items:stretch}
+.main-chat{height:auto;min-height:100vh;overflow:visible}
+.sidebar{position:static;align-self:stretch;height:auto}
+.workspace-dashboard{padding:34px 28px 12px}
+.workspace-hero{min-height:300px;padding:44px 48px}
+.workspace-hero h2{font-size:clamp(42px,4.2vw,64px)}
+.workspace-hero p{max-width:850px;font-size:15px;line-height:1.7}
+.workspace-actions button{min-height:46px;padding:0 20px;font-size:14px}
+.workspace-tags span{padding:9px 13px;font-size:11px}
+.workspace-ai{flex-basis:86px;width:86px;height:86px;font-size:28px}
+.workspace-stats{gap:14px;margin-top:16px}
+.workspace-stats>div{min-height:105px;padding:18px 42px 18px 20px}
+.workspace-stats small{font-size:9px}
+.workspace-stats strong{font-size:25px;margin:8px 0 4px}
+.workspace-stats span{font-size:11px}
+.projects-panel,.github-panel,.builder-panel,.design-studio,.game-center,.game-lab,.fight-lab,.adventure-lab,.code-lab{margin-top:22px}
+.projects-panel{padding:28px}
+.project-grid{gap:16px}
+.project-card{min-height:190px;padding:22px}
+.github-panel,.builder-panel{padding:28px}
+.builder-grid{gap:14px}
+.builder-grid button{min-height:125px;padding:18px}
+.chat{min-height:340px;height:auto}
+@media(max-width:900px){
+  .workspace-dashboard{padding:26px 18px 10px}
+  .workspace-hero{padding:34px 30px;min-height:270px}
+  .workspace-stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:650px){
+  body{padding:0}
+  .app{display:block;min-height:100vh}
+  .sidebar{display:none}
+  .workspace-dashboard{padding:22px 14px 8px}
+  .workspace-hero{padding:28px 22px;min-height:0}
+  .workspace-hero h2{font-size:36px}
+  .workspace-hero p{font-size:13px}
+  .workspace-stats{grid-template-columns:1fr}
+  .workspace-stats>div{min-height:92px}
+}
