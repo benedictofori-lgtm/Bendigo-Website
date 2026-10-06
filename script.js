@@ -39,6 +39,14 @@ function setThinking(value) {
   if (sendButton) sendButton.disabled = value;
 }
 
+async function performWebSearch(query) {
+  const response = await fetch("/api/search?q=" + encodeURIComponent(query));
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Search failed.");
+  if (!data.results?.length) return "🔎 I couldn't find search results for: " + query;
+  return "🔎 Search results for: " + query + "\n\n" + data.results.map((r, i) => (i + 1) + ". " + r.title + "\n" + r.url).join("\n\n");
+}
+
 async function sendMessage(message = input?.value.trim()) {
   if (!message || !input || !chat) return;
   input.value = "";
@@ -46,6 +54,11 @@ async function sendMessage(message = input?.value.trim()) {
   setThinking(true);
 
   try {
+    const searchMatch = message.match(/^\\s*(?:search(?: the web)?(?: for)?|look up)\\s+(.+)/i);
+    if (searchMatch) {
+      addMessage(await performWebSearch(searchMatch[1].trim()), "ai");
+      return;
+    }
     const history = [...chat.querySelectorAll(".message")].slice(-10).map(el => ({
       role: el.classList.contains("user") ? "user" : "assistant",
       content: el.textContent
