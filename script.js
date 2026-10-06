@@ -267,7 +267,10 @@ async function refreshGithubWorkspace() {
     const filesData = await filesResponse.json();
     if (!statusResponse.ok || !filesResponse.ok) throw new Error(repoData.error || filesData.error || "GitHub sync failed.");
     if (branchName) branchName.textContent = repoData.branch || "main";
-    if (status) status.textContent = "Synced just now";
+    if (status) status.textContent = repoData.writeEnabled ? "Synced • write access ready" : "Synced • read-only";
+    const mode = $("githubConnectionMode");
+    if (mode) mode.textContent = repoData.writeEnabled ? "CONNECTED" : "READ-ONLY";
+    ["githubBranchButton","githubCommitButton","githubPrButton"].forEach(id => { const button = $(id); if (button) button.disabled = !repoData.writeEnabled; });
     if (box) {
       box.innerHTML = "";
       (filesData.files || []).filter(file => file.type === "file").forEach(file => {
