@@ -54,7 +54,7 @@ async function sendMessage(message = input?.value.trim()) {
   setThinking(true);
 
   try {
-    const searchMatch = message.match(/^\\s*(?:search(?: the web)?(?: for)?|look up)\\s+(.+)/i);
+    const searchMatch = message.match(/^\s*(?:search(?: the web)?(?: for)?|look up)\s+(.+)/i);
     if (searchMatch) {
       addMessage(await performWebSearch(searchMatch[1].trim()), "ai");
       return;
