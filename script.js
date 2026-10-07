@@ -342,13 +342,35 @@ refreshGithubWorkspace();
 checkSystemHealth();
 
 
-// Bendigo AI bottom navigation
-function setupBottomWorkspaceNav(){
-  document.querySelectorAll("[data-bottom-target]").forEach(button=>{
-    button.addEventListener("click",()=>{
-      const target=$(button.dataset.bottomTarget);
-      if(target){ target.scrollIntoView({behavior:"smooth",block:"start"}); }
-      if(button.dataset.bottomTarget === "github") refreshGithubWorkspace();
+// Bendigo AI bottom navigation and quick actions.
+// Each action uses a real workspace section or the existing project/chat controls.
+function setupBottomWorkspaceNav() {
+  document.querySelectorAll("[data-bottom-target]").forEach(button => {
+    button.addEventListener("click", () => {
+      const target = $(button.dataset.bottomTarget);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (button.dataset.bottomTarget === "github") refreshGithubWorkspace();
+    });
+  });
+
+  document.querySelectorAll("[data-bottom-action]").forEach(button => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.bottomAction;
+      if (action === "new-project") {
+        goToWorkspace("projects");
+        newProjectButton?.click();
+      } else if (action === "open-code") {
+        goToWorkspace("codeLab");
+        htmlCode?.focus();
+      } else if (action === "search") {
+        goToWorkspace("chat");
+        if (input) {
+          input.placeholder = "Ask Bendigo AI, or type: search for your topic...";
+          input.focus();
+        }
+      } else if (action === "build") {
+        goToWorkspace("builder");
+      }
     });
   });
 }
