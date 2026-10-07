@@ -271,6 +271,8 @@ async function refreshGithubWorkspace() {
     if (status) status.textContent = repoData.writeEnabled ? "Synced • write access ready" : "Synced • read-only";
     const mode = $("githubConnectionMode");
     if (mode) mode.textContent = repoData.writeEnabled ? "CONNECTED" : "READ-ONLY";
+    const bottomGithub = $("bottomGithubStatus");
+    if (bottomGithub) bottomGithub.textContent = repoData.writeEnabled ? "CONNECTED" : "READ-ONLY";
     ["githubBranchButton","githubCommitButton","githubPrButton"].forEach(id => { const button = $(id); if (button) button.disabled = !repoData.writeEnabled; });
     if (box) {
       box.innerHTML = "";
@@ -289,6 +291,8 @@ async function refreshGithubWorkspace() {
     }
   } catch (error) {
     if (status) status.textContent = "Sync failed";
+    const bottomGithub = $("bottomGithubStatus");
+    if (bottomGithub) bottomGithub.textContent = "CHECK FAILED";
     if (box) box.textContent = "GitHub sync could not be completed. Check your internet connection.";
     console.error(error);
   }
