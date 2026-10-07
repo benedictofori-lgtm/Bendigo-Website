@@ -340,3 +340,16 @@ loadChatHistory();
 runCode();
 refreshGithubWorkspace();
 checkSystemHealth();
+
+
+// Bendigo AI bottom navigation
+function setupBottomWorkspaceNav(){
+  document.querySelectorAll("[data-bottom-target]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      const target=$(button.dataset.bottomTarget);
+      if(target){ target.scrollIntoView({behavior:"smooth",block:"start"}); }
+      if(button.dataset.bottomTarget === "github") refreshGithubWorkspace();
+    });
+  });
+}
+setupBottomWorkspaceNav();
