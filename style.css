@@ -857,3 +857,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .claim-offer:hover{background:#303030;opacity:1}
 @media(max-width:850px){.app{grid-template-columns:260px 1fr}}
 @media(max-width:650px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+
+
+.sidebar-search{padding:0 4px 8px}.sidebar-search input{width:100%;height:36px;padding:0 11px;border:1px solid #343434;border-radius:9px;background:#1a1a1a;color:#f5f5f5;outline:none;font-size:13px}.sidebar-search input:focus{border-color:#5f6368;box-shadow:none}
+body.sidebar-collapsed .app{grid-template-columns:72px 1fr}body.sidebar-collapsed .sidebar{padding-left:8px;padding-right:8px}body.sidebar-collapsed .brand-title,body.sidebar-collapsed .chatgpt-new-chat span:last-child,body.sidebar-collapsed .chatgpt-nav .side-link span:last-child,body.sidebar-collapsed .sidebar-heading,body.sidebar-collapsed .pinned-link span:last-child,body.sidebar-collapsed .recent-link span:last-child,body.sidebar-collapsed .profile-copy,body.sidebar-collapsed .claim-offer{display:none}body.sidebar-collapsed .chatgpt-style-brand{justify-content:center;margin-left:0;margin-right:0}body.sidebar-collapsed .sidebar-top-icons{display:flex;flex-direction:column}body.sidebar-collapsed .chatgpt-new-chat,body.sidebar-collapsed .chatgpt-nav .side-link,body.sidebar-collapsed .pinned-link{justify-content:center;padding-left:0;padding-right:0}body.sidebar-collapsed .sidebar-profile{justify-content:center;padding-left:0;padding-right:0}
