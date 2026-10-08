@@ -744,3 +744,19 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .preview-control{min-height:38px;padding:0 13px;background:rgba(15,31,55,.8);border:1px solid rgba(96,165,250,.25);font-size:11px}
 .preview-control:hover{background:rgba(39,55,105,.9)}
 .code-preview-fullscreen{position:fixed!important;inset:18px!important;width:auto!important;height:auto!important;z-index:9999!important;border-radius:14px!important;background:#000!important;box-shadow:0 20px 80px rgba(0,0,0,.75)}
+
+
+/* Local project file explorer */
+.file-explorer-card{grid-column:span 2}
+.file-explorer-actions{display:flex;gap:7px;margin-bottom:9px}
+.file-explorer-actions button{padding:7px 10px;border:1px solid rgba(96,165,250,.25);border-radius:8px;background:rgba(18,40,73,.65);color:#dce9ff;font-size:9px;font-weight:700;cursor:pointer}
+.file-explorer-actions button:hover{background:rgba(39,55,105,.85);border-color:rgba(121,151,255,.5)}
+.file-explorer-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.workspace-file{display:flex;align-items:center;gap:7px;padding:8px 9px}
+.workspace-file-main{flex:1;min-width:0;cursor:pointer}
+.workspace-file-main b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.workspace-file-actions{display:flex;gap:4px;margin-left:auto}
+.workspace-file-actions button{padding:4px 7px;border:0;border-radius:6px;background:rgba(255,255,255,.06);color:#93a6c4;font-size:8px;cursor:pointer}
+.workspace-file-actions button:hover{background:rgba(96,165,250,.18);color:#fff}
+@media(max-width:900px){.file-explorer-card{grid-column:span 2}}
+@media(max-width:650px){.file-explorer-card{grid-column:auto}}
