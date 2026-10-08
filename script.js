@@ -780,3 +780,19 @@ sidebarCollapseButton?.addEventListener("click",()=>{
   document.body.classList.toggle("sidebar-collapsed");
   sidebarCollapseButton.setAttribute("aria-label",document.body.classList.contains("sidebar-collapsed")?"Expand sidebar":"Collapse sidebar");
 });
+
+
+// Sidebar More menu.
+const sidebarMoreButton=$("sidebarMoreButton");
+const sidebarMoreMenu=$("sidebarMoreMenu");
+sidebarMoreButton?.addEventListener("click",()=>{
+  if(sidebarMoreMenu)sidebarMoreMenu.hidden=!sidebarMoreMenu.hidden;
+});
+document.querySelectorAll("[data-more-target]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    const target=button.dataset.moreTarget;
+    sidebarMoreMenu?.setAttribute("hidden","");
+    if(target)goToWorkspace(target);
+    if(target==="github")refreshGithubWorkspace();
+  });
+});
