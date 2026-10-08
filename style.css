@@ -737,3 +737,10 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   background:#000 !important;
   border-color:rgba(255,255,255,.14);
 }
+
+
+/* Code Lab controls */
+.code-lab-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.preview-control{min-height:38px;padding:0 13px;background:rgba(15,31,55,.8);border:1px solid rgba(96,165,250,.25);font-size:11px}
+.preview-control:hover{background:rgba(39,55,105,.9)}
+.code-preview-fullscreen{position:fixed!important;inset:18px!important;width:auto!important;height:auto!important;z-index:9999!important;border-radius:14px!important;background:#000!important;box-shadow:0 20px 80px rgba(0,0,0,.75)}
