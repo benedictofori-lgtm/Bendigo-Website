@@ -762,3 +762,13 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media(max-width:650px){.file-explorer-card{grid-column:auto}}
 
 .editor-note{display:block;margin-top:6px;color:#7f8ea8;font-size:8px;line-height:1.4}.editor-grid .editor-box:has(#pythonCode){grid-column:span 3}@media(max-width:900px){.editor-grid .editor-box:has(#pythonCode){grid-column:span 1}}
+.design-studio-panel{margin:0 20px 22px;padding:18px;border:1px solid var(--border);border-radius:18px;background:rgba(2,6,23,.14)}
+.design-studio-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px}.design-studio-head h2{margin:0 0 5px;font-size:19px}.design-studio-head p{margin:0;color:var(--muted);font-size:13px}.design-badge{padding:7px 10px;border-radius:999px;background:rgba(124,58,237,.2);color:#ddd6fe;font-size:10px;font-weight:800;letter-spacing:.8px}
+.design-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:12px}.design-upload-card,.design-preview-card{padding:14px;border:1px solid var(--border);border-radius:14px;background:rgba(2,6,23,.25)}
+.design-upload-label{display:block;color:var(--accent-2);font-size:12px;font-weight:700;margin-bottom:7px}.design-upload-card input[type=file]{width:100%;font-size:12px;color:var(--muted)}
+.design-drop-zone{margin:10px 0;padding:22px;border:1px dashed rgba(96,165,250,.45);border-radius:12px;text-align:center;color:#94a3b8;font-size:12px;background:rgba(15,23,42,.3)}
+.design-drop-zone.dragover{border-color:var(--accent-2);background:rgba(59,130,246,.15);color:#dbeafe}
+.design-controls{display:grid;gap:9px;margin-top:12px}.design-controls label{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:8px;color:#cbd5e1;font-size:11px}.design-controls input{width:100%}
+.design-actions{display:flex;gap:8px;margin-top:13px}.design-actions button{min-height:38px;padding:0 12px;font-size:12px}.design-actions button:disabled{opacity:.45}
+.design-preview-title{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px}.design-canvas-wrap{min-height:310px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:10px;background:#000}.design-canvas-wrap canvas{display:block;max-width:100%;max-height:430px}.design-canvas-wrap canvas:not([width]){display:none}#designEmptyState{color:#64748b;font-size:12px}
+@media(max-width:850px){.design-grid{grid-template-columns:1fr}}
