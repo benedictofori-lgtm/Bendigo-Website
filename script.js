@@ -49,8 +49,48 @@ async function performWebSearch(query) {
   const response = await fetch(apiUrl("/api/search?q=" + encodeURIComponent(query)));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Search failed.");
-  if (!data.results?.length) return "🔎 I couldn't find search results for: " + query;
-  return "🔎 Search results for: " + query + "\n\n" + data.results.map((r, i) => (i + 1) + ". " + r.title + "\n" + r.url).join("\n\n");
+  if (!data.results?.length) return {text: "No search results found for: " + query, results: []};
+  return {text: "Search results for: " + query, results: data.results};
+}
+
+function addSearchResults(query, results) {
+  if (!chat) return;
+  const wrap = document.createElement("div");
+  wrap.className = "message ai search-results";
+  const heading = document.createElement("strong");
+  heading.textContent = "Search results for: " + query;
+  wrap.appendChild(heading);
+
+  results.forEach((result, index) => {
+    const card = document.createElement("a");
+    card.className = "search-result-card";
+    card.href = result.url;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+
+    const number = document.createElement("span");
+    number.className = "search-result-number";
+    number.textContent = String(index + 1);
+
+    const content = document.createElement("span");
+    content.className = "search-result-content";
+
+    const title = document.createElement("strong");
+    title.textContent = result.title || result.url;
+
+    const url = document.createElement("small");
+    url.textContent = result.url;
+
+    const snippet = document.createElement("p");
+    snippet.textContent = result.snippet || "Open this result to view the source.";
+
+    content.append(title, url, snippet);
+    card.append(number, content);
+    wrap.appendChild(card);
+  });
+
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
 }
 
 async function sendMessage(message = input?.value.trim()) {
@@ -62,7 +102,10 @@ async function sendMessage(message = input?.value.trim()) {
   try {
     const searchMatch = message.match(/^\s*(?:search(?: the web)?(?: for)?|look up)\s+(.+)/i);
     if (searchMatch) {
-      addMessage(await performWebSearch(searchMatch[1].trim()), "ai");
+      const query = searchMatch[1].trim();
+      const searchData = await performWebSearch(query);
+      if (searchData.results.length) addSearchResults(query, searchData.results);
+      else addMessage(searchData.text, "ai");
       return;
     }
 
