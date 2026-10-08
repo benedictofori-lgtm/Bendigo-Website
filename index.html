@@ -11,7 +11,8 @@
 <aside class="sidebar">
 <div class="brand chatgpt-style-brand">
   <div class="brand-title">Bendigo AI</div>
-  <div class="sidebar-top-icons"><button type="button" class="sidebar-icon" aria-label="Search">⌕</button><button type="button" class="sidebar-icon" aria-label="Collapse sidebar">◧</button></div>
+  <div class="sidebar-top-icons"><button id="sidebarSearchButton" type="button" class="sidebar-icon" aria-label="Search">⌕</button><button id="sidebarCollapseButton" type="button" class="sidebar-icon" aria-label="Collapse sidebar">◧</button></div>
+<div id="sidebarSearch" class="sidebar-search" hidden><input id="sidebarSearchInput" type="search" placeholder="Search workspace..." autocomplete="off"></div>
 </div>
 <button id="newChatButton" class="side-button chatgpt-new-chat" type="button"><span class="nav-icon">✎</span><span>New project</span></button>
 <nav class="chatgpt-nav" aria-label="Main navigation">
