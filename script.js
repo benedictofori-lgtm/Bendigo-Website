@@ -14,6 +14,7 @@ const voiceStatus = $("voiceStatus");
 const clearButton = $("clearButton");
 const newChatButton = $("newChatButton");
 const dashboardButton = $("dashboardButton");
+
 const startBuildingButton = $("startBuildingButton");
 const openWorkspaceButton = $("openWorkspaceButton");
 const newProjectButton = $("newProjectButton");
@@ -848,3 +849,57 @@ document.querySelectorAll("[data-more-target]").forEach(button=>{
     if(target==="github")refreshGithubWorkspace();
   });
 });
+
+
+// Bendigo AI Background Settings: local colour tint and brightness controls.
+(function setupBackgroundSettings(){
+  const panel=$("backgroundSettings"), openButton=$("backgroundSettingsButton"), closeButton=$("backgroundSettingsClose");
+  const colorSlider=$("backgroundColorSlider"), brightnessSlider=$("backgroundBrightnessSlider");
+  const colorValue=$("backgroundColorValue"), brightnessValue=$("backgroundBrightnessValue");
+  const preview=$("backgroundPreview"), resetButton=$("backgroundResetButton"), applyButton=$("backgroundApplyButton");
+  if(!panel||!openButton||!colorSlider||!brightnessSlider)return;
+  const defaults={hue:220,brightness:70};
+  let draft={...defaults};
+  const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+  function hexFromHue(h){
+    const s=0.78,l=0.52,c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+    let r=0,g=0,b=0;
+    if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}
+    return '#'+[r,g,b].map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('').toUpperCase();
+  }
+  function applyPreview(){
+    const hex=hexFromHue(Number(draft.hue));
+    colorSlider.value=draft.hue;brightnessSlider.value=draft.brightness;
+    if(colorValue)colorValue.textContent=hex;
+    if(brightnessValue)brightnessValue.textContent=draft.brightness+'%';
+    const alpha=(draft.brightness/100)*0.30;
+    if(preview)preview.style.background='linear-gradient(rgba(0,0,0,'+(0.48-(draft.brightness/100)*0.30)+'),rgba(0,0,0,'+(0.48-(draft.brightness/100)*0.30)+')),linear-gradient('+hex+','+hex+'),url("Neon Cosmic Dreams ✨ Magical Galaxy Art.jpg") center/cover';
+    panel.style.setProperty('--bg-preview-color',hex);
+  }
+  function loadSaved(){
+    try{const saved=JSON.parse(localStorage.getItem('bendigoBackgroundSettings')||'null');if(saved)draft={hue:clamp(Number(saved.hue)||defaults.hue,0,360),brightness:clamp(Number(saved.brightness)||defaults.brightness,15,100)}}catch{}
+    applyPreview();
+  }
+  function open(){loadSaved();panel.hidden=false;document.body.classList.add('background-settings-open')}
+  function close(){panel.hidden=true;document.body.classList.remove('background-settings-open')}
+  function save(){
+    localStorage.setItem('bendigoBackgroundSettings',JSON.stringify(draft));
+    const hex=hexFromHue(Number(draft.hue));
+    document.documentElement.style.setProperty('--bendigo-bg-color',hex);
+    document.documentElement.style.setProperty('--bendigo-bg-brightness',(draft.brightness/70).toFixed(3));
+    document.body.style.setProperty('--bendigo-bg-overlay','rgba(0,0,0,'+(0.46-(draft.brightness/100)*0.34).toFixed(3)+')');
+    applyPreview();
+  }
+  function restoreSaved(){
+    try{const saved=JSON.parse(localStorage.getItem('bendigoBackgroundSettings')||'null');if(saved)draft={hue:clamp(Number(saved.hue)||defaults.hue,0,360),brightness:clamp(Number(saved.brightness)||defaults.brightness,15,100)}}catch{}
+    save();
+  }
+  openButton.addEventListener('click',open);closeButton?.addEventListener('click',close);
+  panel.querySelector('[data-background-close]')?.addEventListener('click',close);
+  colorSlider.addEventListener('input',()=>{draft.hue=Number(colorSlider.value);applyPreview()});
+  brightnessSlider.addEventListener('input',()=>{draft.brightness=Number(brightnessSlider.value);applyPreview()});
+  resetButton?.addEventListener('click',()=>{draft={...defaults};applyPreview();save()});
+  applyButton?.addEventListener('click',()=>{save();close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
+  loadSaved();
+})();
