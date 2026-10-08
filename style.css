@@ -864,3 +864,7 @@ body.sidebar-collapsed .app{grid-template-columns:72px 1fr}body.sidebar-collapse
 
 
 .sidebar-more-menu{margin:0 4px 5px;padding:5px;border:1px solid #333;border-radius:10px;background:#1b1b1b;box-shadow:0 10px 28px rgba(0,0,0,.35)}.sidebar-more-menu button{display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:#e7e7e7;text-align:left;font-size:12px}.sidebar-more-menu button:hover{background:#303030}.sidebar-more-menu[hidden]{display:none}
+
+
+.project-card{display:flex;align-items:center;justify-content:space-between;gap:14px}.project-card-info{min-width:0;display:flex;flex-direction:column;gap:5px}.project-card-info strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.project-card-actions{display:flex;gap:6px;flex-shrink:0}.project-card-actions button{min-height:30px;padding:0 9px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.04);color:#cbd5e1;font-size:10px}.project-card-actions button:hover{background:rgba(255,255,255,.1);color:#fff}.project-card-actions button:last-child:hover{border-color:#ef4444;color:#fecaca}
+@media(max-width:650px){.project-card{align-items:flex-start;flex-direction:column}.project-card-actions{width:100%}}
