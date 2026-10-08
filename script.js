@@ -231,6 +231,78 @@ function runCode() {
 }
 
 runCodeButton?.addEventListener("click", runCode);
+
+function renderWorkspaceFiles() {
+  const box = $("workspaceFiles");
+  if (!box) return;
+  const files = [
+    ["index.html", "HTML"],
+    ["style.css", "CSS"],
+    ["script.js", "JavaScript"]
+  ];
+  box.innerHTML = files.map(([name,type]) => '<div class="workspace-file"><b>' + name + '</b><span>' + type + ' file</span></div>').join("");
+}
+
+function saveWorkspace() {
+  const data = {
+    html: htmlCode?.value || "",
+    css: cssCode?.value || "",
+    js: jsCode?.value || "",
+    notes: $("projectNotes")?.value || "",
+    savedAt: new Date().toISOString()
+  };
+  localStorage.setItem("bendigoCodeLab", JSON.stringify(data));
+  const status = $("saveWorkspaceStatus");
+  if (status) status.textContent = "Saved locally • " + new Date().toLocaleTimeString();
+}
+
+function loadWorkspace() {
+  try {
+    const data = JSON.parse(localStorage.getItem("bendigoCodeLab") || "null");
+    if (!data) return;
+    if (htmlCode && data.html) htmlCode.value = data.html;
+    if (cssCode && data.css) cssCode.value = data.css;
+    if (jsCode && data.js) jsCode.value = data.js;
+    const notes = $("projectNotes");
+    if (notes && typeof data.notes === "string") notes.value = data.notes;
+    const status = $("saveWorkspaceStatus");
+    if (status && data.savedAt) status.textContent = "Last saved • " + new Date(data.savedAt).toLocaleString();
+  } catch (error) {
+    console.warn("Saved workspace could not be loaded:", error);
+  }
+}
+
+function downloadFile(filename, content, type) {
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+function downloadProjectHtml() {
+  const html = htmlCode?.value || "";
+  const css = cssCode?.value || "";
+  const js = jsCode?.value || "";
+  const documentText = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' +
+    css + '</style></head><body>' + html + '<script>' + js.replace(/<\\/script>/gi, "<\\\\/script>") +
+    '<\\/script></body></html>';
+  downloadFile("bendigo-project.html", documentText, "text/html");
+}
+
+$("saveWorkspaceButton")?.addEventListener("click", saveWorkspace);
+$("downloadHtmlButton")?.addEventListener("click", downloadProjectHtml);
+$("downloadCssButton")?.addEventListener("click", () => downloadFile("style.css", cssCode?.value || "", "text/css"));
+$("downloadJsButton")?.addEventListener("click", () => downloadFile("script.js", jsCode?.value || "", "text/javascript"));
+$("projectNotes")?.addEventListener("input", () => {
+  clearTimeout(window._bendigoNotesTimer);
+  window._bendigoNotesTimer = setTimeout(saveWorkspace, 700);
+});
+
 [htmlCode, cssCode, jsCode].forEach(editor => editor?.addEventListener("input", () => {
   clearTimeout(editor._bendigoTimer);
   editor._bendigoTimer = setTimeout(runCode, 500);
@@ -345,6 +417,8 @@ function updateProjectStat() {
 
 loadProjects();
 updateProjectStat();
+loadWorkspace();
+renderWorkspaceFiles();
 loadChatHistory();
 runCode();
 refreshGithubWorkspace();
