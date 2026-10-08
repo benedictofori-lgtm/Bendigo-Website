@@ -296,16 +296,126 @@ $("plannerInput")?.addEventListener("keydown", event => {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") renderProjectPlan();
 });
 
+function getProjectFiles() {
+  const core = [
+    {name:"index.html", type:"HTML", core:true},
+    {name:"style.css", type:"CSS", core:true},
+    {name:"script.js", type:"JavaScript", core:true}
+  ];
+  let custom = [];
+  try { custom = JSON.parse(localStorage.getItem("bendigoProjectFiles") || "[]"); } catch {}
+  return core.concat(custom);
+}
+
+function saveProjectFiles(files) {
+  const custom = files.filter(file => !file.core);
+  localStorage.setItem("bendigoProjectFiles", JSON.stringify(custom));
+}
+
+function focusCoreFile(name) {
+  const map = { "index.html": htmlCode, "style.css": cssCode, "script.js": jsCode };
+  const editor = map[name];
+  if (editor) {
+    editor.focus();
+    editor.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+}
+
 function renderWorkspaceFiles() {
   const box = $("workspaceFiles");
   if (!box) return;
-  const files = [
-    ["index.html", "HTML"],
-    ["style.css", "CSS"],
-    ["script.js", "JavaScript"]
-  ];
-  box.innerHTML = files.map(([name,type]) => '<div class="workspace-file"><b>' + name + '</b><span>' + type + ' file</span></div>').join("");
+  const files = getProjectFiles();
+  box.innerHTML = "";
+  files.forEach(file => {
+    const row = document.createElement("div");
+    row.className = "workspace-file";
+    
+    const main = document.createElement("div");
+    main.className = "workspace-file-main";
+    const name = document.createElement("b");
+    name.textContent = file.name;
+    const type = document.createElement("span");
+    type.textContent = (file.type || "Text") + " file";
+    main.append(name, type);
+    main.addEventListener("click", () => {
+      if (file.core) focusCoreFile(file.name);
+      else {
+        const content = prompt("Edit " + file.name + ":", file.content || "");
+        if (content === null) return;
+        const all = getProjectFiles();
+        const target = all.find(item => item.name === file.name && !item.core);
+        if (target) {
+          target.content = content;
+          target.updatedAt = new Date().toISOString();
+          saveProjectFiles(all);
+          renderWorkspaceFiles();
+          if ($("fileExplorerStatus")) $("fileExplorerStatus").textContent = "Saved " + file.name;
+        }
+      }
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "workspace-file-actions";
+    if (!file.core) {
+      const rename = document.createElement("button");
+      rename.type = "button";
+      rename.textContent = "Rename";
+      rename.addEventListener("click", event => {
+        event.stopPropagation();
+        const next = prompt("New file name:", file.name);
+        if (!next?.trim()) return;
+        const all = getProjectFiles();
+        if (all.some(item => item.name === next.trim())) {
+          alert("A file with that name already exists.");
+          return;
+        }
+        const target = all.find(item => item.name === file.name && !item.core);
+        if (target) target.name = next.trim();
+        saveProjectFiles(all);
+        renderWorkspaceFiles();
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Delete";
+      remove.addEventListener("click", event => {
+        event.stopPropagation();
+        if (!confirm("Delete " + file.name + "?")) return;
+        saveProjectFiles(getProjectFiles().filter(item => item.name !== file.name));
+        renderWorkspaceFiles();
+        if ($("fileExplorerStatus")) $("fileExplorerStatus").textContent = "File deleted";
+      });
+      actions.append(rename, remove);
+    }
+    row.append(main, actions);
+    box.appendChild(row);
+  });
+  const status = $("fileExplorerStatus");
+  if (status) status.textContent = files.length + " project files";
 }
+
+$("newFileButton")?.addEventListener("click", () => {
+  const name = prompt("New file name (example: README.md):");
+  if (!name?.trim()) return;
+  const cleanName = name.trim();
+  const files = getProjectFiles();
+  if (files.some(file => file.name === cleanName)) {
+    alert("A file with that name already exists.");
+    return;
+  }
+  const content = prompt("Optional starting content for " + cleanName + ":", "");
+  if (content === null) return;
+  const type = cleanName.endsWith(".html") ? "HTML" :
+    cleanName.endsWith(".css") ? "CSS" :
+    cleanName.endsWith(".js") ? "JavaScript" :
+    cleanName.endsWith(".py") ? "Python" :
+    cleanName.endsWith(".md") ? "Markdown" : "Text";
+  files.push({name:cleanName, type, content, core:false, updatedAt:new Date().toISOString()});
+  saveProjectFiles(files);
+  renderWorkspaceFiles();
+  if ($("fileExplorerStatus")) $("fileExplorerStatus").textContent = "Created " + cleanName;
+});
+
+$("refreshFilesButton")?.addEventListener("click", renderWorkspaceFiles);
 
 function saveWorkspace() {
   const data = {
