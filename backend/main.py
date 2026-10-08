@@ -48,19 +48,22 @@ def ai_model_reply(message: str, history: list[dict[str, Any]]):
     if not ai_gateway_configured():
         return None
 
-    messages = []
+    input_items = []
     for item in history[-20:]:
         role = item.get("role")
         content = str(item.get("content", "")).strip()
         if role in {"user", "assistant", "system"} and content:
-            messages.append({"role": role, "content": content})
-    messages.append({"role": "user", "content": message})
+            input_items.append({"role": role, "content": content})
+    input_items.append({"role": "user", "content": message})
 
     payload = json.dumps({
         "model": AI_MODEL,
-        "messages": messages,
-        "temperature": 0.7,
-        "stream": False,
+        "input": input_items,
+        "instructions": (
+            "You are Bendigo AI, a helpful coding and learning assistant. "
+            "Give accurate, clear answers. When writing code, explain important choices "
+            "and keep unsafe or destructive operations out of generated examples."
+        ),
     }).encode("utf-8")
 
     headers = {
@@ -71,19 +74,26 @@ def ai_model_reply(message: str, history: list[dict[str, Any]]):
     if AI_API_KEY:
         headers["Authorization"] = "Bearer " + AI_API_KEY
 
-    request = Request(AI_BASE_URL + "/chat/completions", data=payload, headers=headers, method="POST")
-    with urlopen(request, timeout=60) as response:
+    request = Request(AI_BASE_URL + "/responses", data=payload, headers=headers, method="POST")
+    with urlopen(request, timeout=90) as response:
         data = json.loads(response.read().decode("utf-8"))
 
-    choices = data.get("choices") or []
-    if not choices:
-        raise RuntimeError("The AI model returned no choices.")
+    output_text = data.get("output_text")
+    if output_text:
+        return str(output_text)
 
-    content = choices[0].get("message", {}).get("content")
-    if not content:
-        raise RuntimeError("The AI model returned an empty response.")
-    return str(content)
+    # Compatibility fallback for response objects that expose message output items.
+    parts = []
+    for item in data.get("output", []):
+        if item.get("type") != "message":
+            continue
+        for content in item.get("content", []):
+            if content.get("type") in {"output_text", "text"} and content.get("text"):
+                parts.append(str(content["text"]))
+    if parts:
+        return "\n".join(parts)
 
+    raise RuntimeError("The AI model returned no text.")
 
 def sse_event(event: str, data: str) -> str:
     safe = data.replace("\r", "").replace("\n", "\ndata: ")
