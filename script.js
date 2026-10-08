@@ -757,3 +757,26 @@ document.querySelectorAll("[data-design-goal]").forEach(button=>{
     if(designAssistantStatus)designAssistantStatus.textContent=preset.name+" preset applied. You can fine-tune the sliders.";
   });
 });
+
+
+// Sidebar controls: workspace search and compact mode.
+const sidebarSearchButton=$("sidebarSearchButton");
+const sidebarSearch=$("sidebarSearch");
+const sidebarSearchInput=$("sidebarSearchInput");
+const sidebarCollapseButton=$("sidebarCollapseButton");
+sidebarSearchButton?.addEventListener("click",()=>{
+  if(!sidebarSearch)return;
+  sidebarSearch.hidden=!sidebarSearch.hidden;
+  if(!sidebarSearch.hidden)sidebarSearchInput?.focus();
+});
+sidebarSearchInput?.addEventListener("input",()=>{
+  const query=sidebarSearchInput.value.trim().toLowerCase();
+  document.querySelectorAll(".chatgpt-nav .side-link,.pinned-link,.recent-link").forEach(item=>{
+    const label=item.textContent.trim().toLowerCase();
+    item.hidden=!!query&&!label.includes(query);
+  });
+});
+sidebarCollapseButton?.addEventListener("click",()=>{
+  document.body.classList.toggle("sidebar-collapsed");
+  sidebarCollapseButton.setAttribute("aria-label",document.body.classList.contains("sidebar-collapsed")?"Expand sidebar":"Collapse sidebar");
+});
