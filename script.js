@@ -851,7 +851,7 @@ document.querySelectorAll("[data-more-target]").forEach(button=>{
 });
 
 
-// Bendigo AI Background Settings: local colour tint and brightness controls.
+// Bendigo AI Background Settings: compact colour picker with live tint and brightness control.
 (function setupBackgroundSettings(){
   const panel=$("backgroundSettings"), openButton=$("backgroundSettingsButton"), closeButton=$("backgroundSettingsClose");
   const colorSlider=$("backgroundColorSlider"), brightnessSlider=$("backgroundBrightnessSlider");
@@ -867,39 +867,54 @@ document.querySelectorAll("[data-more-target]").forEach(button=>{
     if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}
     return '#'+[r,g,b].map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('').toUpperCase();
   }
+  function rgbFromHex(hex){
+    return {
+      r:parseInt(hex.slice(1,3),16),
+      g:parseInt(hex.slice(3,5),16),
+      b:parseInt(hex.slice(5,7),16)
+    };
+  }
+  function tintAlpha(){ return 0.10 + ((draft.brightness/100)*0.28); }
   function applyPreview(){
     const hex=hexFromHue(Number(draft.hue));
-    colorSlider.value=draft.hue;brightnessSlider.value=draft.brightness;
+    colorSlider.value=draft.hue;
+    brightnessSlider.value=draft.brightness;
     if(colorValue)colorValue.textContent=hex;
     if(brightnessValue)brightnessValue.textContent=draft.brightness+'%';
-    const alpha=(draft.brightness/100)*0.30;
-    if(preview)preview.style.background='linear-gradient(rgba(0,0,0,'+(0.48-(draft.brightness/100)*0.30)+'),rgba(0,0,0,'+(0.48-(draft.brightness/100)*0.30)+')),linear-gradient('+hex+','+hex+'),url("Neon Cosmic Dreams ✨ Magical Galaxy Art.jpg") center/cover';
-    panel.style.setProperty('--bg-preview-color',hex);
+    const rgb=rgbFromHex(hex);
+    const alpha=tintAlpha();
+    const darken=Math.max(0,0.40-(draft.brightness/100)*0.40);
+    if(preview){
+      preview.style.background='linear-gradient(rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+'),rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+')),linear-gradient(rgba(0,0,0,'+darken.toFixed(3)+'),rgba(0,0,0,'+darken.toFixed(3)+')),url("Neon Cosmic Dreams ✨ Magical Galaxy Art.jpg") center/cover';
+    }
   }
   function loadSaved(){
-    try{const saved=JSON.parse(localStorage.getItem('bendigoBackgroundSettings')||'null');if(saved)draft={hue:clamp(Number(saved.hue)||defaults.hue,0,360),brightness:clamp(Number(saved.brightness)||defaults.brightness,15,100)}}catch{}
+    try{
+      const saved=JSON.parse(localStorage.getItem('bendigoBackgroundSettings')||'null');
+      if(saved)draft={hue:clamp(Number(saved.hue)||defaults.hue,0,360),brightness:clamp(Number(saved.brightness)||defaults.brightness,15,100)};
+    }catch{}
     applyPreview();
   }
   function open(){loadSaved();panel.hidden=false;document.body.classList.add('background-settings-open')}
   function close(){panel.hidden=true;document.body.classList.remove('background-settings-open')}
   function save(){
-    localStorage.setItem('bendigoBackgroundSettings',JSON.stringify(draft));
     const hex=hexFromHue(Number(draft.hue));
-    document.documentElement.style.setProperty('--bendigo-bg-color',hex);
-    document.documentElement.style.setProperty('--bendigo-bg-brightness',(draft.brightness/70).toFixed(3));
-    document.body.style.setProperty('--bendigo-bg-overlay','rgba(0,0,0,'+(0.46-(draft.brightness/100)*0.34).toFixed(3)+')');
+    const rgb=rgbFromHex(hex);
+    const alpha=tintAlpha();
+    const darken=Math.max(0,0.40-(draft.brightness/100)*0.40);
+    localStorage.setItem('bendigoBackgroundSettings',JSON.stringify(draft));
+    document.documentElement.style.setProperty('--bendigo-bg-tint','rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+')');
+    document.documentElement.style.setProperty('--bendigo-bg-overlay','rgba(0,0,0,'+darken.toFixed(3)+')');
     applyPreview();
   }
-  function restoreSaved(){
-    try{const saved=JSON.parse(localStorage.getItem('bendigoBackgroundSettings')||'null');if(saved)draft={hue:clamp(Number(saved.hue)||defaults.hue,0,360),brightness:clamp(Number(saved.brightness)||defaults.brightness,15,100)}}catch{}
-    save();
-  }
-  openButton.addEventListener('click',open);closeButton?.addEventListener('click',close);
+  function applySavedToPage(){ loadSaved(); save(); }
+  openButton.addEventListener('click',open);
+  closeButton?.addEventListener('click',close);
   panel.querySelector('[data-background-close]')?.addEventListener('click',close);
   colorSlider.addEventListener('input',()=>{draft.hue=Number(colorSlider.value);applyPreview()});
   brightnessSlider.addEventListener('input',()=>{draft.brightness=Number(brightnessSlider.value);applyPreview()});
-  resetButton?.addEventListener('click',()=>{draft={...defaults};applyPreview();save()});
+  resetButton?.addEventListener('click',()=>{draft={...defaults};save()});
   applyButton?.addEventListener('click',()=>{save();close()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
-  loadSaved();
+  applySavedToPage();
 })();
