@@ -211,12 +211,51 @@ function loadProjects() {
     localStorage.setItem("bendigoProjects", JSON.stringify(projects));
   }
   projectGrid.innerHTML = "";
-  projects.forEach(project => {
+  projects.forEach((project, index) => {
     const card = document.createElement("div");
     card.className = "project-card";
-    card.innerHTML = "<strong></strong><small></small>";
-    card.querySelector("strong").textContent = project.name;
-    card.querySelector("small").textContent = project.type;
+    const info = document.createElement("div");
+    info.className = "project-card-info";
+    const title = document.createElement("strong");
+    title.textContent = project.name;
+    const type = document.createElement("small");
+    type.textContent = project.type || "Project";
+    info.append(title, type);
+    const actions = document.createElement("div");
+    actions.className = "project-card-actions";
+    const open = document.createElement("button");
+    open.type = "button";
+    open.textContent = "Open";
+    open.addEventListener("click", () => {
+      sessionId = crypto.randomUUID ? crypto.randomUUID() : "session-" + Date.now();
+      localStorage.setItem("bendigoSessionId", sessionId);
+      if (chat) chat.innerHTML = '<div class="message ai">Opened project: ' + project.name.replace(/</g, "&lt;") + '</div>';
+      goToWorkspace("chat");
+      input?.focus();
+    });
+    const rename = document.createElement("button");
+    rename.type = "button";
+    rename.textContent = "Rename";
+    rename.addEventListener("click", () => {
+      const nextName = prompt("Rename project:", project.name);
+      if (!nextName?.trim()) return;
+      projects[index].name = nextName.trim();
+      projects[index].updatedAt = new Date().toISOString();
+      localStorage.setItem("bendigoProjects", JSON.stringify(projects));
+      loadProjects();
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Delete";
+    remove.addEventListener("click", () => {
+      if (!confirm("Delete " + project.name + "?")) return;
+      projects.splice(index, 1);
+      localStorage.setItem("bendigoProjects", JSON.stringify(projects));
+      loadProjects();
+      updateProjectStat();
+    });
+    actions.append(open, rename, remove);
+    card.append(info, actions);
     projectGrid.appendChild(card);
   });
 }
