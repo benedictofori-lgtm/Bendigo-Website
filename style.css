@@ -760,3 +760,5 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .workspace-file-actions button:hover{background:rgba(96,165,250,.18);color:#fff}
 @media(max-width:900px){.file-explorer-card{grid-column:span 2}}
 @media(max-width:650px){.file-explorer-card{grid-column:auto}}
+
+.editor-note{display:block;margin-top:6px;color:#7f8ea8;font-size:8px;line-height:1.4}.editor-grid .editor-box:has(#pythonCode){grid-column:span 3}@media(max-width:900px){.editor-grid .editor-box:has(#pythonCode){grid-column:span 1}}
