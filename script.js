@@ -69,7 +69,7 @@ async function sendMessage(message = input?.value.trim()) {
       content: el.textContent
     }));
 
-    const response = await fetch(apiUrl("/api/chat", {
+    const response = await fetch(apiUrl("/api/chat"), {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ message, sessionId, history })
@@ -103,7 +103,7 @@ document.querySelectorAll("[data-prompt]").forEach(button => {
 
 async function loadChatHistory() {
   try {
-    const response = await fetch(apiUrl("/api/chat/history?sessionId=" + encodeURIComponent(sessionId));
+    const response = await fetch(apiUrl("/api/chat/history?sessionId=" + encodeURIComponent(sessionId)));
     if (!response.ok) return;
     const data = await response.json();
     if (data.messages?.length) {
@@ -117,7 +117,7 @@ async function loadChatHistory() {
 
 clearButton?.addEventListener("click", async () => {
   try {
-    await fetch(apiUrl("/api/chat/history?sessionId=" + encodeURIComponent(sessionId), {method: "DELETE"});
+    await fetch(apiUrl("/api/chat/history?sessionId=" + encodeURIComponent(sessionId)), {method: "DELETE"});
   } catch {}
   chat.innerHTML = '<div class="message ai">Chat cleared. 👋 What would you like to build?</div>';
 });
@@ -266,8 +266,8 @@ async function refreshGithubWorkspace() {
   if (status) status.textContent = "Syncing…";
   try {
     const [statusResponse, filesResponse] = await Promise.all([
-      fetch(apiUrl("/api/github/status"),
-      fetch(apiUrl("/api/github/files")
+      fetch(apiUrl("/api/github/status")),
+      fetch(apiUrl("/api/github/files"))
     ]);
     const repoData = await statusResponse.json();
     const filesData = await filesResponse.json();
@@ -317,7 +317,7 @@ $("githubPrButton")?.addEventListener("click", () => {
 
 async function checkSystemHealth() {
   try {
-    const response = await fetch(apiUrl("/api/health");
+    const response = await fetch(apiUrl("/api/health"));
     const data = await response.json();
     const ai = $("statAI");
     const aiSub = $("statAISub");
