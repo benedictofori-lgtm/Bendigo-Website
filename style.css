@@ -902,3 +902,6 @@ body.sidebar-collapsed .app{grid-template-columns:72px 1fr}body.sidebar-collapse
 .background-apply:hover{background:#fff;opacity:1}
 .background-settings-trigger{margin-top:3px!important}.background-settings-trigger .nav-icon{color:#c8c8c8}
 @media(max-width:650px){.background-settings-dialog{width:min(300px,calc(100vw - 20px))}}
+
+/* Hide the adjustment slider lines under Design Assistant */
+.design-controls{display:none!important}
