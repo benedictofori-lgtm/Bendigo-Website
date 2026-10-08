@@ -11,6 +11,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+import psycopg
+
 
 
 APP_VERSION = "1.2.0"
@@ -37,11 +39,86 @@ app.add_middleware(
 
 chat_history: dict[str, list[dict[str, str]]] = {}
 
+
+def database_configured() -> bool:
+    return bool(DATABASE_URL)
+
+
+def db_connect():
+    if not DATABASE_URL:
+        return None
+    return psycopg.connect(DATABASE_URL, connect_timeout=10)
+
+
+def init_database() -> None:
+    if not DATABASE_URL:
+        return
+    with db_connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS chat_messages (
+                    id BIGSERIAL PRIMARY KEY,
+                    session_id VARCHAR(120) NOT NULL,
+                    role VARCHAR(20) NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_chat_messages_session_time
+                ON chat_messages (session_id, created_at, id)
+            """)
+        conn.commit()
+
+
+def db_get_history(session_id: str, limit: int = 40) -> list[dict[str, str]]:
+    if not DATABASE_URL:
+        return chat_history.get(session_id, [])
+    with db_connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT role, content FROM chat_messages WHERE session_id = %s ORDER BY created_at DESC, id DESC LIMIT %s",
+                (session_id, limit),
+            )
+            rows = list(reversed(cur.fetchall()))
+    return [{"role": role, "content": content} for role, content in rows]
+
+
+def db_add_messages(session_id: str, messages: list[dict[str, str]]) -> None:
+    if not messages:
+        return
+    if not DATABASE_URL:
+        chat_history[session_id] = (chat_history.get(session_id, []) + messages)[-40:]
+        return
+    with db_connect() as conn:
+        with conn.cursor() as cur:
+            cur.executemany(
+                "INSERT INTO chat_messages (session_id, role, content) VALUES (%s, %s, %s)",
+                [(session_id, item["role"], item["content"]) for item in messages],
+            )
+        conn.commit()
+
+
+def db_delete_history(session_id: str) -> None:
+    if not DATABASE_URL:
+        chat_history.pop(session_id, None)
+        return
+    with db_connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM chat_messages WHERE session_id = %s", (session_id,))
+        conn.commit()
+
+
+@app.on_event("startup")
+async def startup_database() -> None:
+    init_database()
+
 # Optional server-side AI model gateway.
 # No model credential is ever sent to the browser.
 AI_BASE_URL = os.getenv("AI_BASE_URL", "").strip().rstrip("/")
 AI_MODEL = os.getenv("AI_MODEL", "").strip()
 AI_API_KEY = os.getenv("AI_API_KEY", "").strip()
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
 
 def ai_gateway_configured() -> bool:
@@ -260,6 +337,10 @@ async def health():
         "version": APP_VERSION,
         "aiConfigured": ai_gateway_configured(),
         "aiModel": AI_MODEL or "not configured",
+        "database": {
+            "configured": database_configured(),
+            "type": "postgresql" if database_configured() else "memory-fallback",
+        },
         "github": {
             "connected": True,
             "writeEnabled": bool(GITHUB_TOKEN),
@@ -273,6 +354,20 @@ async def health():
             "githubWrite": bool(GITHUB_TOKEN),
         },
     }
+
+
+@app.get("/api/db/status")
+async def db_status():
+    if not DATABASE_URL:
+        return {"configured": False, "type": "memory-fallback", "persistent": False}
+    try:
+        with db_connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                cur.fetchone()
+        return {"configured": True, "type": "postgresql", "persistent": True, "status": "connected"}
+    except Exception as exc:
+        return {"configured": True, "type": "postgresql", "persistent": False, "status": "error", "error": str(exc)[:200]}
 
 
 @app.get("/api/ai/status")
@@ -323,9 +418,7 @@ async def chat(request: ChatRequest):
     message = request.message.strip()
     session_id = (request.sessionId or "default").strip()[:120] or "default"
 
-    messages = chat_history.setdefault(session_id, [])
-    messages.append({"role": "user", "content": message})
-
+    messages = db_get_history(session_id)
     model_reply = None
     if ai_gateway_configured():
         try:
@@ -334,8 +427,10 @@ async def chat(request: ChatRequest):
             model_reply = None
 
     reply = model_reply or make_reply(message)
-    messages.append({"role": "assistant", "content": reply})
-    chat_history[session_id] = messages[-40:]
+    db_add_messages(session_id, [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": reply},
+    ])
 
     return {
         "success": True,
@@ -353,8 +448,7 @@ async def chat_stream(request: ChatRequest):
     session_id = (request.sessionId or "default").strip()[:120] or "default"
 
     async def events():
-        messages = chat_history.setdefault(session_id, [])
-        messages.append({"role": "user", "content": message})
+        messages = db_get_history(session_id)
         yield sse_event("start", json.dumps({
             "sessionId": session_id,
             "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
@@ -368,8 +462,10 @@ async def chat_stream(request: ChatRequest):
                 reply = None
 
         reply = reply or make_reply(message)
-        messages.append({"role": "assistant", "content": reply})
-        chat_history[session_id] = messages[-40:]
+        db_add_messages(session_id, [
+            {"role": "user", "content": message},
+            {"role": "assistant", "content": reply},
+        ])
 
         # Stream in small chunks so the UI can render a real assistant-style response.
         for match in re.findall(r".{1,80}(?:\s+|$)", reply):
@@ -390,12 +486,12 @@ async def chat_stream(request: ChatRequest):
 
 @app.get("/api/chat/history")
 async def get_chat_history(sessionId: str = Query(default="default", max_length=120)):
-    return {"success": True, "sessionId": sessionId, "messages": chat_history.get(sessionId, [])}
+    return {"success": True, "sessionId": sessionId, "messages": db_get_history(sessionId)}
 
 
 @app.delete("/api/chat/history")
 async def delete_chat_history(sessionId: str = Query(default="default", max_length=120)):
-    chat_history.pop(sessionId, None)
+    db_delete_history(sessionId)
     return {"success": True, "sessionId": sessionId}
 
 
