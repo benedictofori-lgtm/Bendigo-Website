@@ -1,5 +1,10 @@
 const $ = (id) => document.getElementById(id);
 
+// Bendigo AI backend hosted on Render.
+// Keep this URL on the server side for secrets; the browser only calls public API endpoints.
+const BACKEND_URL = "https://bendigo-ai-backend.onrender.com";
+const apiUrl = (path) => BACKEND_URL + path;
+
 const chat = $("chat");
 const input = $("userInput");
 const sendButton = $("sendButton");
@@ -40,7 +45,7 @@ function setThinking(value) {
 }
 
 async function performWebSearch(query) {
-  const response = await fetch("/api/search?q=" + encodeURIComponent(query));
+  const response = await fetch(apiUrl("/api/search?q=" + encodeURIComponent(query));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Search failed.");
   if (!data.results?.length) return "🔎 I couldn't find search results for: " + query;
@@ -64,7 +69,7 @@ async function sendMessage(message = input?.value.trim()) {
       content: el.textContent
     }));
 
-    const response = await fetch("/api/chat", {
+    const response = await fetch(apiUrl("/api/chat", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ message, sessionId, history })
@@ -98,7 +103,7 @@ document.querySelectorAll("[data-prompt]").forEach(button => {
 
 async function loadChatHistory() {
   try {
-    const response = await fetch("/api/chat/history?sessionId=" + encodeURIComponent(sessionId));
+    const response = await fetch(apiUrl("/api/chat/history?sessionId=" + encodeURIComponent(sessionId));
     if (!response.ok) return;
     const data = await response.json();
     if (data.messages?.length) {
@@ -112,7 +117,7 @@ async function loadChatHistory() {
 
 clearButton?.addEventListener("click", async () => {
   try {
-    await fetch("/api/chat/history?sessionId=" + encodeURIComponent(sessionId), {method: "DELETE"});
+    await fetch(apiUrl("/api/chat/history?sessionId=" + encodeURIComponent(sessionId), {method: "DELETE"});
   } catch {}
   chat.innerHTML = '<div class="message ai">Chat cleared. 👋 What would you like to build?</div>';
 });
@@ -261,8 +266,8 @@ async function refreshGithubWorkspace() {
   if (status) status.textContent = "Syncing…";
   try {
     const [statusResponse, filesResponse] = await Promise.all([
-      fetch("/api/github/status"),
-      fetch("/api/github/files")
+      fetch(apiUrl("/api/github/status"),
+      fetch(apiUrl("/api/github/files")
     ]);
     const repoData = await statusResponse.json();
     const filesData = await filesResponse.json();
@@ -312,7 +317,7 @@ $("githubPrButton")?.addEventListener("click", () => {
 
 async function checkSystemHealth() {
   try {
-    const response = await fetch("/api/health");
+    const response = await fetch(apiUrl("/api/health");
     const data = await response.json();
     const ai = $("statAI");
     const aiSub = $("statAISub");
