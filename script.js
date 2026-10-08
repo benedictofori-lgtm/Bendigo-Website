@@ -232,6 +232,15 @@ function runCode() {
 
 runCodeButton?.addEventListener("click", runCode);
 
+const fullscreenPreviewButton = $("fullscreenPreviewButton");
+fullscreenPreviewButton?.addEventListener("click", () => {
+  if (!codePreview) return;
+  const active = codePreview.classList.toggle("code-preview-fullscreen");
+  fullscreenPreviewButton.textContent = active ? "✕ Exit Fullscreen" : "⛶ Fullscreen";
+  if (active) codePreview.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+
 
 function createProjectPlan(idea) {
   const text = idea.toLowerCase();
