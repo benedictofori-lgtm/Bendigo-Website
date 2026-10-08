@@ -905,3 +905,6 @@ body.sidebar-collapsed .app{grid-template-columns:72px 1fr}body.sidebar-collapse
 
 /* Hide the adjustment slider lines under Design Assistant */
 .design-controls{display:none!important}
+
+/* Design Studio editing controls */
+.design-actions{display:flex;flex-wrap:wrap;gap:8px}.design-actions button{cursor:pointer}
