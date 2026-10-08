@@ -15,7 +15,7 @@ import psycopg
 
 
 
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.1"
 GITHUB_REPO = "benedictofori-lgtm/Bendigo-website"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
 
