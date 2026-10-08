@@ -45,7 +45,7 @@ function setThinking(value) {
 }
 
 async function performWebSearch(query) {
-  const response = await fetch(apiUrl("/api/search?q=" + encodeURIComponent(query));
+  const response = await fetch(apiUrl("/api/search?q=" + encodeURIComponent(query)));
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Search failed.");
   if (!data.results?.length) return "🔎 I couldn't find search results for: " + query;
@@ -79,7 +79,7 @@ async function sendMessage(message = input?.value.trim()) {
     if (!response.ok) throw new Error(data.error || "Bendigo AI could not respond.");
     addMessage(data.reply || "I received your message, but there was no response.", "ai");
   } catch (error) {
-    addMessage("⚠️ " + error.message + " Make sure Bendigo AI is running with: npm start", "ai");
+    addMessage("⚠️ " + error.message + " Check your Bendigo AI backend connection and try again.", "ai");
   } finally {
     setThinking(false);
     input.focus();
