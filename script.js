@@ -707,16 +707,16 @@ $("githubCommitButton")?.addEventListener("click", async () => {
     addMessage("Create a working branch before committing Code Lab changes.", "ai");
     return;
   }
-  const message = prompt("Commit message:", "Update Bendigo Code Lab");
+  const message = prompt("Commit message:", "Update Bendigo workspace");
   if (!message?.trim()) return;
   try {
     const data = await githubPost("/api/github/commit", {
       branch,
       message: message.trim(),
       files: {
-        "index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>" + (cssCode?.value || "") + "</style></head><body>" + (htmlCode?.value || "") + "<script>" + (jsCode?.value || "").replace(/<\\/script>/gi, "<\\\\/script>") + "<\\/script></body></html>",
-        "style.css": cssCode?.value || "",
-        "script.js": jsCode?.value || ""
+        "bendigo-workspace/index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>" + (cssCode?.value || "") + "</style></head><body>" + (htmlCode?.value || "") + "<script>" + (jsCode?.value || "").replace(/<\\/script>/gi, "<\\\\/script>") + "<\\/script></body></html>",
+        "bendigo-workspace/style.css": cssCode?.value || "",
+        "bendigo-workspace/script.js": jsCode?.value || ""
       }
     });
     if ($("githubSyncStatus")) $("githubSyncStatus").textContent = "Committed • " + data.commit.slice(0,7);
