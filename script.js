@@ -227,7 +227,7 @@ function runCode() {
   const html = htmlCode.value;
   const css = cssCode.value.replace(/<\\/style>/gi, "<\\\\/style>");
   const js = jsCode.value.replace(/<\\/script>/gi, "<\\\\/script>");
-  codePreview.srcdoc = `<!doctype html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}<script>${js}<\\/script></body></html>`;
+  codePreview.srcdoc = `<!doctype html><html><head><meta charset="UTF-8"><style>html,body{background:#000;color:#fff;margin:0;min-height:100%;} ${css}</style></head><body>${html}<script>${js}<\\/script></body></html>`;
 }
 
 runCodeButton?.addEventListener("click", runCode);
