@@ -385,9 +385,9 @@ newProjectButton?.addEventListener("click", () => {
 function runCode() {
   if (!codePreview || !htmlCode || !cssCode || !jsCode) return;
   const html = htmlCode.value;
-  const css = cssCode.value.replace(/<\\/style>/gi, "<\\\\/style>");
-  const js = jsCode.value.replace(/<\\/script>/gi, "<\\\\/script>");
-  codePreview.srcdoc = `<!doctype html><html><head><meta charset="UTF-8"><style>html,body{background:#000;color:#fff;margin:0;min-height:100%;} ${css}</style></head><body>${html}<script>${js}<\\/script></body></html>`;
+  const css = cssCode.value.replace(/<\/style>/gi, "<\\\\/style>");
+  const js = jsCode.value.replace(/<\/script>/gi, "<\\\\/script>");
+  codePreview.srcdoc = `<!doctype html><html><head><meta charset="UTF-8"><style>html,body{background:#000;color:#fff;margin:0;min-height:100%;} ${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
 }
 
 runCodeButton?.addEventListener("click", runCode);
@@ -626,8 +626,8 @@ function downloadProjectHtml() {
   const css = cssCode?.value || "";
   const js = jsCode?.value || "";
   const documentText = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' +
-    css + '</style></head><body>' + html + '<script>' + js.replace(/<\\/script>/gi, "<\\\\/script>") +
-    '<\\/script></body></html>';
+    css + '</style></head><body>' + html + '<script>' + js.replace(/<\/script>/gi, "<\\\\/script>") +
+    '<\/script></body></html>';
   downloadFile("bendigo-project.html", documentText, "text/html");
 }
 
@@ -754,7 +754,7 @@ $("githubCommitButton")?.addEventListener("click", async () => {
       branch,
       message: message.trim(),
       files: {
-        "bendigo-workspace/index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>" + (cssCode?.value || "") + "</style></head><body>" + (htmlCode?.value || "") + "<script>" + (jsCode?.value || "").replace(/<\\/script>/gi, "<\\\\/script>") + "<\\/script></body></html>",
+        "bendigo-workspace/index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>" + (cssCode?.value || "") + "</style></head><body>" + (htmlCode?.value || "") + "<script>" + (jsCode?.value || "").replace(/<\/script>/gi, "<\\\\/script>") + "<\/script></body></html>",
         "bendigo-workspace/style.css": cssCode?.value || "",
         "bendigo-workspace/script.js": jsCode?.value || ""
       }
