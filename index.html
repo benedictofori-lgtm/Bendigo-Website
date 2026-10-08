@@ -59,6 +59,17 @@
 <label class="design-upload-label" for="designImageInput">Choose image</label>
 <input id="designImageInput" type="file" accept="image/*">
 <div id="designDropZone" class="design-drop-zone">Drop an image here or choose a file</div>
+<div class="design-assistant-card">
+<div class="design-assistant-title">Design Assistant</div>
+<p>Choose a goal and Bendigo will suggest a starting adjustment for your image.</p>
+<div class="design-goals">
+<button type="button" data-design-goal="social">Social post</button>
+<button type="button" data-design-goal="portrait">Portrait</button>
+<button type="button" data-design-goal="cinematic">Cinematic</button>
+<button type="button" data-design-goal="clean">Clean & bright</button>
+</div>
+<span id="designAssistantStatus" class="tool-status">Select a goal after uploading an image.</span>
+</div>
 <div class="design-controls">
 <label>Brightness <input id="designBrightness" type="range" min="50" max="150" value="100"></label>
 <label>Contrast <input id="designContrast" type="range" min="50" max="150" value="100"></label>
