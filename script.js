@@ -550,15 +550,74 @@ async function refreshGithubWorkspace() {
 }
 
 $("githubSyncButton")?.addEventListener("click", refreshGithubWorkspace);
-$("githubBranchButton")?.addEventListener("click", () => {
+async function githubPost(path, payload) {
+  const response = await fetch(apiUrl(path), {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.success === false) throw new Error(data.error || data.details || "GitHub action failed.");
+  return data;
+}
+
+$("githubBranchButton")?.addEventListener("click", async () => {
   const name = prompt("New branch name:");
-  if (name?.trim()) addMessage("GitHub branch request saved: " + name.trim() + ". Branch creation needs a secure GitHub write connection.", "ai");
+  if (!name?.trim()) return;
+  try {
+    const data = await githubPost("/api/github/branch", {branch:name.trim()});
+    if ($("githubBranchName")) $("githubBranchName").textContent = data.branch;
+    if ($("githubSyncStatus")) $("githubSyncStatus").textContent = "Branch created • " + data.branch;
+    addMessage("GitHub branch created: " + data.branch, "ai");
+  } catch (error) {
+    addMessage(error.message, "ai");
+  }
 });
-$("githubCommitButton")?.addEventListener("click", () => {
-  addMessage("GitHub commit action is ready for a secure write connection. Your browser should never contain a GitHub token.", "ai");
+
+$("githubCommitButton")?.addEventListener("click", async () => {
+  const branch = $("githubBranchName")?.textContent?.trim() || "main";
+  if (branch === "main") {
+    addMessage("Create a working branch before committing Code Lab changes.", "ai");
+    return;
+  }
+  const message = prompt("Commit message:", "Update Bendigo Code Lab");
+  if (!message?.trim()) return;
+  try {
+    const data = await githubPost("/api/github/commit", {
+      branch,
+      message: message.trim(),
+      files: {
+        "index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>" + (cssCode?.value || "") + "</style></head><body>" + (htmlCode?.value || "") + "<script>" + (jsCode?.value || "").replace(/<\\/script>/gi, "<\\\\/script>") + "<\\/script></body></html>",
+        "style.css": cssCode?.value || "",
+        "script.js": jsCode?.value || ""
+      }
+    });
+    if ($("githubSyncStatus")) $("githubSyncStatus").textContent = "Committed • " + data.commit.slice(0,7);
+    await refreshGithubWorkspace();
+    addMessage("Code Lab changes committed to " + branch + ".", "ai");
+  } catch (error) {
+    addMessage(error.message, "ai");
+  }
 });
-$("githubPrButton")?.addEventListener("click", () => {
-  addMessage("Pull request action is ready for a secure GitHub connection.", "ai");
+
+$("githubPrButton")?.addEventListener("click", async () => {
+  const branch = $("githubBranchName")?.textContent?.trim() || "";
+  if (!branch || branch === "main") {
+    addMessage("Create a working branch first, then open a pull request.", "ai");
+    return;
+  }
+  const title = prompt("Pull request title:", "Bendigo AI Code Lab update");
+  if (!title?.trim()) return;
+  const body = prompt("Pull request description:", "Code Lab changes from Bendigo AI.");
+  if (body === null) return;
+  try {
+    const data = await githubPost("/api/github/pr", {branch, title:title.trim(), body});
+    if ($("githubSyncStatus")) $("githubSyncStatus").textContent = "Pull request opened";
+    addMessage("Pull request #" + data.number + " opened successfully.", "ai");
+    if (data.url) window.open(data.url, "_blank", "noopener");
+  } catch (error) {
+    addMessage(error.message, "ai");
+  }
 });
 
 async function checkSystemHealth() {
