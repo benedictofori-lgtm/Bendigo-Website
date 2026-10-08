@@ -471,6 +471,7 @@ function saveWorkspace() {
     html: htmlCode?.value || "",
     css: cssCode?.value || "",
     js: jsCode?.value || "",
+    python: $("pythonCode")?.value || "",
     notes: $("projectNotes")?.value || "",
     savedAt: new Date().toISOString()
   };
@@ -486,6 +487,8 @@ function loadWorkspace() {
     if (htmlCode && data.html) htmlCode.value = data.html;
     if (cssCode && data.css) cssCode.value = data.css;
     if (jsCode && data.js) jsCode.value = data.js;
+    const pythonCode = $("pythonCode");
+    if (pythonCode && typeof data.python === "string") pythonCode.value = data.python;
     const notes = $("projectNotes");
     if (notes && typeof data.notes === "string") notes.value = data.notes;
     const status = $("saveWorkspaceStatus");
@@ -526,7 +529,7 @@ $("projectNotes")?.addEventListener("input", () => {
   window._bendigoNotesTimer = setTimeout(saveWorkspace, 700);
 });
 
-[htmlCode, cssCode, jsCode].forEach(editor => editor?.addEventListener("input", () => {
+[htmlCode, cssCode, jsCode, $("pythonCode")].forEach(editor => editor?.addEventListener("input", () => {
   clearTimeout(editor._bendigoTimer);
   editor._bendigoTimer = setTimeout(runCode, 500);
 }));
