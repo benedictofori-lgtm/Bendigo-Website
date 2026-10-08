@@ -9,18 +9,30 @@
 <body>
 <main class="app">
 <aside class="sidebar">
-<div class="brand"><div class="logo bendigo-mark">B</div><div><strong>Bendigo AI</strong></div></div>
-<button id="newChatButton" class="side-button" type="button">＋ New project</button>
-<div class="side-section">
-<p>MENU</p>
-<button id="dashboardButton" class="side-link">⌂ Dashboard</button>
+<div class="brand chatgpt-style-brand">
+  <div class="brand-title">Bendigo AI</div>
+  <div class="sidebar-top-icons"><button type="button" class="sidebar-icon" aria-label="Search">⌕</button><button type="button" class="sidebar-icon" aria-label="Collapse sidebar">◧</button></div>
 </div>
-<div class="sidebar-workspace-links" aria-label="Workspace navigation"><button type="button" class="side-link" data-workspace-target="projects">▦ Projects</button><button type="button" class="side-link" data-workspace-target="codeLab">💻 Code</button><button type="button" class="side-link" data-workspace-target="github">◈ GitHub</button></div>
-<div class="sidebar-bottom">
-<div class="plan-card"><small>FREE plane</small><strong>Bendigo AI Designs Workspace</strong><span>Build ideas into real projects.</span><b>›</b></div>
-<button id="sidebarEditButton" class="sidebar-edit" type="button">Edit</button>
-<div class="online-status"><span>●</span> Online</div>
+<button id="newChatButton" class="side-button chatgpt-new-chat" type="button"><span class="nav-icon">✎</span><span>New project</span></button>
+<nav class="chatgpt-nav" aria-label="Main navigation">
+  <button type="button" class="side-link" data-workspace-target="designStudio"><span class="nav-icon">▧</span><span>Images</span></button>
+  <button type="button" class="side-link" data-workspace-target="tools"><span class="nav-icon">▤</span><span>Library</span></button>
+  <button type="button" class="side-link" data-workspace-target="planner"><span class="nav-icon">◷</span><span>Scheduled</span></button>
+  <button type="button" class="side-link" data-workspace-target="builder"><span class="nav-icon">◉</span><span>Plugins</span></button>
+  <button type="button" class="side-link" data-workspace-target="projects"><span class="nav-icon">▱</span><span>Projects</span></button>
+  <button type="button" class="side-link" data-workspace-target="codeLab"><span class="nav-icon">⌘</span><span>Codex</span></button>
+  <button type="button" class="side-link more-link" data-workspace-target="chat"><span class="nav-icon">•••</span><span>More</span></button>
+</nav>
+<div class="sidebar-heading">Pinned</div>
+<button type="button" class="side-link pinned-link" data-workspace-target="github"><span class="nav-icon">▱</span><span>Gifeck</span></button>
+<div class="sidebar-heading recents-heading">Recents</div>
+<button type="button" class="side-link recent-link" data-workspace-target="github"><span>Initialize Git Repository</span></button>
+<div class="sidebar-spacer"></div>
+<div class="sidebar-profile">
+  <div class="profile-avatar">B</div>
+  <div class="profile-copy"><strong>Bendict Ofori</strong><small>Free</small></div>
 </div>
+<button type="button" class="claim-offer"><span>▣</span> Claim offer</button>
 </aside>
 
 <section class="main-chat">
