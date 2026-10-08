@@ -658,14 +658,14 @@ async function refreshGithubWorkspace() {
     ["githubBranchButton","githubCommitButton","githubPrButton"].forEach(id => { const button = $(id); if (button) button.disabled = !repoData.writeEnabled; });
     if (box) {
       box.innerHTML = "";
-      (filesData.files || []).filter(file => file.type === "file").forEach(file => {
+      (filesData.files || []).forEach(file => {
         const row = document.createElement("div");
         row.className = "github-file";
         const link = document.createElement("a");
         link.href = file.url;
         link.target = "_blank";
         link.rel = "noopener";
-        link.textContent = file.name;
+        link.textContent = (file.type === "dir" ? "📁 " : "📄 ") + file.name;
         row.appendChild(link);
         box.appendChild(row);
       });
