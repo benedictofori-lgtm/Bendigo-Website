@@ -93,6 +93,62 @@ function addSearchResults(query, results) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+async function requestChatReply(message, history) {
+  const payload = {message, sessionId, history};
+
+  // Prefer streaming for a ChatGPT-style response.
+  try {
+    const response = await fetch(apiUrl("/api/chat/stream"), {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Accept": "text/event-stream"},
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok && response.body) {
+      const aiMessage = document.createElement("div");
+      aiMessage.className = "message ai";
+      chat.appendChild(aiMessage);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const {value, done} = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, {stream: true});
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+
+        for (const rawEvent of events) {
+          const dataLines = rawEvent.split("\n").filter(line => line.startsWith("data: "));
+          const eventName = (rawEvent.match(/^event:\s*(.+)$/m) || [,""])[1];
+          const data = dataLines.map(line => line.slice(6)).join("\n");
+          if (eventName === "token") {
+            aiMessage.textContent += data;
+            chat.scrollTop = chat.scrollHeight;
+          }
+        }
+      }
+
+      if (aiMessage.textContent.trim()) return;
+      aiMessage.remove();
+    }
+  } catch (streamError) {
+    console.warn("Streaming chat unavailable; using standard chat:", streamError);
+  }
+
+  // Reliable fallback if streaming is unavailable.
+  const response = await fetch(apiUrl("/api/chat"), {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Bendigo AI could not respond.");
+  addMessage(data.reply || "Bendigo AI returned an empty response.", "ai");
+}
+
 async function sendMessage(message = input?.value.trim()) {
   if (!message || !input || !chat) return;
   input.value = "";
@@ -114,45 +170,7 @@ async function sendMessage(message = input?.value.trim()) {
       content: el.textContent
     }));
 
-    const response = await fetch(apiUrl("/api/chat/stream"), {
-      method: "POST",
-      headers: {"Content-Type": "application/json", "Accept": "text/event-stream"},
-      body: JSON.stringify({message, sessionId, history})
-    });
-
-    if (!response.ok || !response.body) {
-      throw new Error("Bendigo AI could not start the response stream.");
-    }
-
-    const aiMessage = document.createElement("div");
-    aiMessage.className = "message ai";
-    chat.appendChild(aiMessage);
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const {value, done} = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, {stream: true});
-      const events = buffer.split("\n\n");
-      buffer = events.pop() || "";
-
-      for (const rawEvent of events) {
-        const dataLines = rawEvent.split("\n").filter(line => line.startsWith("data: "));
-        const eventName = (rawEvent.match(/^event:\s*(.+)$/m) || [,""])[1];
-        const data = dataLines.map(line => line.slice(6)).join("\n");
-        if (eventName === "token") {
-          aiMessage.textContent += data;
-          chat.scrollTop = chat.scrollHeight;
-        }
-      }
-    }
-
-    if (!aiMessage.textContent.trim()) {
-      aiMessage.textContent = "I received your message, but there was no response.";
-    }
+    await requestChatReply(message, history);
   } catch (error) {
     addMessage("⚠️ " + error.message + " Check your Bendigo AI backend connection and try again.", "ai");
   } finally {
@@ -160,6 +178,24 @@ async function sendMessage(message = input?.value.trim()) {
     input.focus();
   }
 }
+
+async function verifyBendigoBackend() {
+  const ready = document.querySelector(".header-ready");
+  const dot = ready?.querySelector("span");
+  try {
+    const response = await fetch(apiUrl("/api/health"), {cache: "no-store"});
+    const data = await response.json();
+    if (!response.ok || data.status !== "healthy") throw new Error("Backend health check failed.");
+    if (ready) ready.lastChild.textContent = data.aiConfigured ? " AI workspace ready" : " Backend online";
+    if (dot) dot.setAttribute("title", data.aiConfigured ? "AI service connected" : "Backend online; model service not configured");
+  } catch (error) {
+    if (ready) ready.lastChild.textContent = " Backend offline";
+    if (dot) dot.setAttribute("title", "Bendigo backend is not reachable");
+    console.error("Bendigo backend health check:", error);
+  }
+}
+
+verifyBendigoBackend();
 
 sendButton?.addEventListener("click", () => sendMessage());
 input?.addEventListener("keydown", e => {
