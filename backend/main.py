@@ -271,6 +271,36 @@ async def health():
     }
 
 
+@app.get("/api/ai/status")
+async def ai_status():
+    return {
+        "configured": ai_gateway_configured(),
+        "provider": "responses-api-compatible" if ai_gateway_configured() else None,
+        "model": AI_MODEL or None,
+        "baseUrlConfigured": bool(AI_BASE_URL),
+        "credentialConfigured": bool(AI_API_KEY),
+        "browserSecretExposure": False,
+    }
+
+
+@app.get("/api/test")
+async def api_test():
+    return {
+        "success": True,
+        "timestamp": now_iso(),
+        "services": {
+            "fastapi": True,
+            "chat": True,
+            "streaming": True,
+            "webSearch": True,
+            "codeGeneration": True,
+            "githubRead": True,
+            "githubWrite": bool(GITHUB_TOKEN),
+            "aiModel": ai_gateway_configured(),
+        },
+    }
+
+
 @app.get("/api/status")
 async def status():
     return {
