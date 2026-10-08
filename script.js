@@ -691,3 +691,41 @@ function setupBottomWorkspaceNav() {
   });
 }
 setupBottomWorkspaceNav();
+
+// Bendigo AI Design Studio: local image preview, non-destructive adjustments, and PNG export.
+const designImageInput=$("designImageInput");
+const designCanvas=$("designCanvas");
+const designEmptyState=$("designEmptyState");
+const designStatus=$("designStatus");
+const designDropZone=$("designDropZone");
+const designDownloadButton=$("designDownloadButton");
+const designBrightness=$("designBrightness");
+const designContrast=$("designContrast");
+const designSaturation=$("designSaturation");
+const designResetButton=$("designResetButton");
+let designImage=null;
+function drawDesignPreview(){
+  if(!designCanvas||!designImage)return;
+  const maxWidth=900,maxHeight=520,scale=Math.min(maxWidth/designImage.naturalWidth,maxHeight/designImage.naturalHeight,1);
+  designCanvas.width=Math.max(1,Math.round(designImage.naturalWidth*scale));
+  designCanvas.height=Math.max(1,Math.round(designImage.naturalHeight*scale));
+  const ctx=designCanvas.getContext("2d");
+  ctx.filter='brightness('+designBrightness.value+'%) contrast('+designContrast.value+'%) saturate('+designSaturation.value+'%)';
+  ctx.drawImage(designImage,0,0,designCanvas.width,designCanvas.height);
+  designCanvas.style.display="block";
+  if(designEmptyState)designEmptyState.hidden=true;
+  if(designDownloadButton)designDownloadButton.disabled=false;
+}
+function loadDesignImage(file){
+  if(!file||!file.type.startsWith("image/"))return;
+  const reader=new FileReader();
+  reader.onload=()=>{const image=new Image();image.onload=()=>{designImage=image;drawDesignPreview();if(designStatus)designStatus.textContent=file.name+" • ready to edit"};image.src=reader.result};
+  reader.readAsDataURL(file);
+}
+designImageInput?.addEventListener("change",()=>loadDesignImage(designImageInput.files?.[0]));
+[designBrightness,designContrast,designSaturation].forEach(control=>control?.addEventListener("input",drawDesignPreview));
+designDropZone?.addEventListener("dragover",e=>{e.preventDefault();designDropZone.classList.add("dragover")});
+designDropZone?.addEventListener("dragleave",()=>designDropZone.classList.remove("dragover"));
+designDropZone?.addEventListener("drop",e=>{e.preventDefault();designDropZone.classList.remove("dragover");loadDesignImage(e.dataTransfer.files?.[0])});
+designResetButton?.addEventListener("click",()=>{designBrightness.value=100;designContrast.value=100;designSaturation.value=100;if(designImage)drawDesignPreview()});
+designDownloadButton?.addEventListener("click",()=>{if(!designCanvas||!designImage)return;designCanvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="bendigo-design.png";a.click();setTimeout(()=>URL.revokeObjectURL(url),500)},"image/png")});
