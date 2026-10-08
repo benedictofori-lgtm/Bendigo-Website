@@ -123,9 +123,19 @@ clearButton?.addEventListener("click", async () => {
 });
 
 function startNewChat() {
+  const name = prompt("Project name:");
+  if (!name?.trim()) return;
+  let projects = [];
+  try { projects = JSON.parse(localStorage.getItem("bendigoProjects") || "[]"); } catch {}
+  const projectName = name.trim();
+  projects.unshift({name: projectName, type: "New project", createdAt: new Date().toISOString()});
+  localStorage.setItem("bendigoProjects", JSON.stringify(projects.slice(0, 12)));
+  loadProjects();
+  updateProjectStat();
   sessionId = crypto.randomUUID ? crypto.randomUUID() : "session-" + Date.now();
   localStorage.setItem("bendigoSessionId", sessionId);
-  if (chat) chat.innerHTML = '<div class="message ai">New Bendigo AI project chat ready. 🚀 What are we building?</div>';
+  if (chat) chat.innerHTML = '<div class="message ai">Project "' + projectName.replace(/</g, "&lt;") + '" is ready. What are we building?</div>';
+  goToWorkspace("projects");
   input?.focus();
 }
 
