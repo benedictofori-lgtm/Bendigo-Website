@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -31,6 +32,63 @@ app.add_middleware(
 )
 
 chat_history: dict[str, list[dict[str, str]]] = {}
+
+# Optional server-side AI model gateway.
+# No model credential is ever sent to the browser.
+AI_BASE_URL = os.getenv("AI_BASE_URL", "").strip().rstrip("/")
+AI_MODEL = os.getenv("AI_MODEL", "").strip()
+AI_API_KEY = os.getenv("AI_API_KEY", "").strip()
+
+
+def ai_gateway_configured() -> bool:
+    return bool(AI_BASE_URL and AI_MODEL)
+
+
+def ai_model_reply(message: str, history: list[dict[str, Any]]):
+    if not ai_gateway_configured():
+        return None
+
+    messages = []
+    for item in history[-20:]:
+        role = item.get("role")
+        content = str(item.get("content", "")).strip()
+        if role in {"user", "assistant", "system"} and content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": message})
+
+    payload = json.dumps({
+        "model": AI_MODEL,
+        "messages": messages,
+        "temperature": 0.7,
+        "stream": False,
+    }).encode("utf-8")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "Bendigo-AI",
+    }
+    if AI_API_KEY:
+        headers["Authorization"] = "Bearer " + AI_API_KEY
+
+    request = Request(AI_BASE_URL + "/chat/completions", data=payload, headers=headers, method="POST")
+    with urlopen(request, timeout=60) as response:
+        data = json.loads(response.read().decode("utf-8"))
+
+    choices = data.get("choices") or []
+    if not choices:
+        raise RuntimeError("The AI model returned no choices.")
+
+    content = choices[0].get("message", {}).get("content")
+    if not content:
+        raise RuntimeError("The AI model returned an empty response.")
+    return str(content)
+
+
+def sse_event(event: str, data: str) -> str:
+    safe = data.replace("\r", "").replace("\n", "\ndata: ")
+    return f"event: {event}\ndata: {safe}\n\n"
+
 
 
 class ChatRequest(BaseModel):
@@ -186,7 +244,8 @@ async def health():
         "status": "healthy",
         "service": "bendigo-ai-backend",
         "version": APP_VERSION,
-        "aiConfigured": False,
+        "aiConfigured": ai_gateway_configured(),
+        "aiModel": AI_MODEL or "not configured",
         "github": {
             "connected": True,
             "writeEnabled": bool(GITHUB_TOKEN),
@@ -209,7 +268,8 @@ async def status():
         "status": "connected",
         "version": APP_VERSION,
         "time": now_iso(),
-        "aiModel": "not configured",
+        "aiModel": AI_MODEL or "not configured",
+        "aiConfigured": ai_gateway_configured(),
         "githubWrite": bool(GITHUB_TOKEN),
     }
 
@@ -222,7 +282,14 @@ async def chat(request: ChatRequest):
     messages = chat_history.setdefault(session_id, [])
     messages.append({"role": "user", "content": message})
 
-    reply = make_reply(message)
+    model_reply = None
+    if ai_gateway_configured():
+        try:
+            model_reply = ai_model_reply(message, request.history or messages[:-1])
+        except Exception as exc:
+            model_reply = None
+
+    reply = model_reply or make_reply(message)
     messages.append({"role": "assistant", "content": reply})
     chat_history[session_id] = messages[-40:]
 
@@ -231,8 +298,50 @@ async def chat(request: ChatRequest):
         "reply": reply,
         "sessionId": session_id,
         "timestamp": now_iso(),
-        "model": "bendigo-backend",
+        "model": AI_MODEL if model_reply else "bendigo-backend",
+        "aiConfigured": ai_gateway_configured(),
     }
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(request: ChatRequest):
+    message = request.message.strip()
+    session_id = (request.sessionId or "default").strip()[:120] or "default"
+
+    async def events():
+        messages = chat_history.setdefault(session_id, [])
+        messages.append({"role": "user", "content": message})
+        yield sse_event("start", json.dumps({
+            "sessionId": session_id,
+            "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
+        }))
+
+        reply = None
+        if ai_gateway_configured():
+            try:
+                reply = ai_model_reply(message, request.history or messages[:-1])
+            except Exception:
+                reply = None
+
+        reply = reply or make_reply(message)
+        messages.append({"role": "assistant", "content": reply})
+        chat_history[session_id] = messages[-40:]
+
+        # Stream in small chunks so the UI can render a real assistant-style response.
+        for match in re.findall(r".{1,80}(?:\s+|$)", reply):
+            if match:
+                yield sse_event("token", match)
+        yield sse_event("done", json.dumps({
+            "success": True,
+            "sessionId": session_id,
+            "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
+            "aiConfigured": ai_gateway_configured(),
+        }))
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers={
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+    })
 
 
 @app.get("/api/chat/history")
