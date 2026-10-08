@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 import json
+import os
 import re
 
 from fastapi import FastAPI
@@ -36,6 +37,43 @@ class CodeRequest(BaseModel):
 
 
 chat_history: dict[str, list[dict]] = {}
+
+GITHUB_REPO = "benedictofori-lgtm/Bendigo-website"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
+
+class GithubBranchRequest(BaseModel):
+    branch: str
+
+class GithubCommitRequest(BaseModel):
+    branch: str
+    message: str
+    files: dict[str, str]
+
+class GithubPullRequestRequest(BaseModel):
+    branch: str
+    title: str
+    body: str = ""
+
+def github_request(method: str, path: str, payload: dict | None = None):
+    if not GITHUB_TOKEN:
+        raise RuntimeError("GitHub write access is not configured on the server.")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + GITHUB_TOKEN,
+        "User-Agent": "Bendigo-AI",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    data = json.dumps(payload).encode("utf-8") if payload is not None else None
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+    request = Request("https://api.github.com" + path, data=data, headers=headers, method=method)
+    with urlopen(request, timeout=20) as response:
+        raw = response.read().decode("utf-8")
+        return json.loads(raw) if raw else {}
+
+def github_write_error(exc: Exception):
+    return {"success": False, "error": "GitHub write operation failed.", "details": str(exc)}
+
 
 
 def make_reply(message: str) -> str:
@@ -145,10 +183,54 @@ async def code(request: CodeRequest):
 async def github_status():
     return {
         "connected": True,
-        "repository": "benedictofori-lgtm/Bendigo-website",
+        "repository": GITHUB_REPO,
         "branch": "main",
-        "writeEnabled": False,
+        "writeEnabled": bool(GITHUB_TOKEN),
     }
+
+@app.post("/api/github/branch")
+async def github_branch(request: GithubBranchRequest):
+    branch = request.branch.strip()
+    if not re.fullmatch(r"[A-Za-z0-9._/-]{1,80}", branch) or branch in {"main", "master"}:
+        return {"success": False, "error": "Choose a valid non-default branch name."}
+    try:
+        main_ref = github_request("GET", f"/repos/{GITHUB_REPO}/git/ref/heads/main")
+        github_request("POST", f"/repos/{GITHUB_REPO}/git/refs", {"ref": "refs/heads/" + branch, "sha": main_ref["object"]["sha"]})
+        return {"success": True, "branch": branch}
+    except Exception as exc:
+        return github_write_error(exc)
+
+@app.post("/api/github/commit")
+async def github_commit(request: GithubCommitRequest):
+    branch, message = request.branch.strip(), request.message.strip()
+    files = {path.strip(): content for path, content in request.files.items() if path.strip()}
+    if not branch or not message or not files:
+        return {"success": False, "error": "Branch, commit message, and at least one file are required."}
+    try:
+        ref = github_request("GET", f"/repos/{GITHUB_REPO}/git/ref/heads/{quote(branch, safe='')}")
+        parent_sha = ref["object"]["sha"]
+        parent = github_request("GET", f"/repos/{GITHUB_REPO}/git/commits/{parent_sha}")
+        tree_items = []
+        for path, content in files.items():
+            blob = github_request("POST", f"/repos/{GITHUB_REPO}/git/blobs", {"content": content, "encoding": "utf-8"})
+            tree_items.append({"path": path, "mode": "100644", "type": "blob", "sha": blob["sha"]})
+        tree = github_request("POST", f"/repos/{GITHUB_REPO}/git/trees", {"base_tree": parent["tree"]["sha"], "tree": tree_items})
+        commit = github_request("POST", f"/repos/{GITHUB_REPO}/git/commits", {"message": message, "tree": tree["sha"], "parents": [parent_sha]})
+        github_request("PATCH", f"/repos/{GITHUB_REPO}/git/refs/heads/{quote(branch, safe='')}", {"sha": commit["sha"], "force": False})
+        return {"success": True, "branch": branch, "commit": commit["sha"], "files": list(files.keys())}
+    except Exception as exc:
+        return github_write_error(exc)
+
+@app.post("/api/github/pr")
+async def github_pr(request: GithubPullRequestRequest):
+    branch, title = request.branch.strip(), request.title.strip()
+    if not branch or not title:
+        return {"success": False, "error": "Branch and pull request title are required."}
+    try:
+        pr = github_request("POST", f"/repos/{GITHUB_REPO}/pulls", {"title": title, "head": branch, "base": "main", "body": request.body.strip()})
+        return {"success": True, "number": pr.get("number"), "url": pr.get("html_url"), "title": pr.get("title")}
+    except Exception as exc:
+        return github_write_error(exc)
 
 
 @app.get("/api/github/files")
