@@ -232,6 +232,61 @@ function runCode() {
 
 runCodeButton?.addEventListener("click", runCode);
 
+
+function createProjectPlan(idea) {
+  const text = idea.toLowerCase();
+  let type = "General project";
+  let files = ["README.md", "project-notes.txt"];
+  let steps = [
+    "Define the goal and the main users.",
+    "Break the idea into small features.",
+    "Create the first working version.",
+    "Test each feature and fix problems.",
+    "Save the project and prepare it for GitHub."
+  ];
+  if (text.includes("website") || text.includes("web")) {
+    type = "Website";
+    files = ["index.html", "style.css", "script.js", "README.md"];
+    steps = ["Plan the pages and user experience.", "Build the HTML structure.", "Create the responsive CSS design.", "Add JavaScript interactions.", "Test on desktop and mobile.", "Prepare the project for GitHub."];
+  } else if (text.includes("game") || text.includes("racing") || text.includes("fighting")) {
+    type = "Game";
+    files = ["index.html", "style.css", "game.js", "assets/", "README.md"];
+    steps = ["Define the game goal and controls.", "Create the game screen and player.", "Add movement, scoring, and game rules.", "Add levels, effects, and user feedback.", "Test gameplay and fix bugs.", "Package the game for sharing."];
+  } else if (text.includes("python")) {
+    type = "Python project";
+    files = ["main.py", "requirements.txt", "README.md"];
+    steps = ["Define the Python program's goal.", "Create the project structure.", "Build the main functions.", "Add input validation and error handling.", "Test the program with different cases.", "Document how to run it."];
+  } else if (text.includes("design") || text.includes("ui") || text.includes("image")) {
+    type = "Design project";
+    files = ["design-brief.md", "assets/", "README.md"];
+    steps = ["Define the visual goal and audience.", "Choose the layout and visual direction.", "Create the main screens or assets.", "Review spacing, readability, and consistency.", "Make the final refinements.", "Prepare the design for presentation."];
+  }
+  return {type, files, steps};
+}
+
+function renderProjectPlan() {
+  const input = $("plannerInput");
+  const result = $("plannerResult");
+  if (!input || !result) return;
+  const idea = input.value.trim();
+  if (!idea) {
+    result.hidden = false;
+    result.innerHTML = "<h3>Tell me what you want to build first.</h3>";
+    return;
+  }
+  const plan = createProjectPlan(idea);
+  result.hidden = false;
+  result.innerHTML = '<h3>' + plan.type + ' plan</h3><div class="plan-grid">' +
+    plan.steps.map((step, index) => '<div class="plan-step"><b>STEP ' + (index + 1) + '</b><span>' + step + '</span></div>').join("") +
+    '</div><div class="plan-files"><b>Suggested project structure:</b> ' + plan.files.join(" · ") + '</div>';
+  localStorage.setItem("bendigoProjectPlan", JSON.stringify({idea, plan, savedAt:new Date().toISOString()}));
+}
+
+$("planProjectButton")?.addEventListener("click", renderProjectPlan);
+$("plannerInput")?.addEventListener("keydown", event => {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") renderProjectPlan();
+});
+
 function renderWorkspaceFiles() {
   const box = $("workspaceFiles");
   if (!box) return;
