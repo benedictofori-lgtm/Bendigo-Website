@@ -756,15 +756,27 @@ const designBrightness=$("designBrightness");
 const designContrast=$("designContrast");
 const designSaturation=$("designSaturation");
 const designResetButton=$("designResetButton");
+const designRotateLeft=$("designRotateLeft");
+const designRotateRight=$("designRotateRight");
+const designGrayscale=$("designGrayscale");
 let designImage=null;
+let designRotation=0;
+let designGrayscaleOn=false;
 function drawDesignPreview(){
   if(!designCanvas||!designImage)return;
   const maxWidth=900,maxHeight=520,scale=Math.min(maxWidth/designImage.naturalWidth,maxHeight/designImage.naturalHeight,1);
-  designCanvas.width=Math.max(1,Math.round(designImage.naturalWidth*scale));
-  designCanvas.height=Math.max(1,Math.round(designImage.naturalHeight*scale));
+  const rotated=designRotation%180!==0;
+  const w=Math.max(1,Math.round(designImage.naturalWidth*scale));
+  const h=Math.max(1,Math.round(designImage.naturalHeight*scale));
+  designCanvas.width=rotated?h:w;
+  designCanvas.height=rotated?w:h;
   const ctx=designCanvas.getContext("2d");
-  ctx.filter='brightness('+designBrightness.value+'%) contrast('+designContrast.value+'%) saturate('+designSaturation.value+'%)';
-  ctx.drawImage(designImage,0,0,designCanvas.width,designCanvas.height);
+  ctx.save();
+  ctx.translate(designCanvas.width/2,designCanvas.height/2);
+  ctx.rotate(designRotation*Math.PI/180);
+  ctx.filter="brightness("+designBrightness.value+"%) contrast("+designContrast.value+"%) saturate("+designSaturation.value+"%) grayscale("+(designGrayscaleOn?100:0)+"%)";
+  ctx.drawImage(designImage,-w/2,-h/2,w,h);
+  ctx.restore();
   designCanvas.style.display="block";
   if(designEmptyState)designEmptyState.hidden=true;
   if(designDownloadButton)designDownloadButton.disabled=false;
@@ -780,7 +792,10 @@ designImageInput?.addEventListener("change",()=>loadDesignImage(designImageInput
 designDropZone?.addEventListener("dragover",e=>{e.preventDefault();designDropZone.classList.add("dragover")});
 designDropZone?.addEventListener("dragleave",()=>designDropZone.classList.remove("dragover"));
 designDropZone?.addEventListener("drop",e=>{e.preventDefault();designDropZone.classList.remove("dragover");loadDesignImage(e.dataTransfer.files?.[0])});
-designResetButton?.addEventListener("click",()=>{designBrightness.value=100;designContrast.value=100;designSaturation.value=100;if(designImage)drawDesignPreview()});
+designResetButton?.addEventListener("click",()=>{designBrightness.value=100;designContrast.value=100;designSaturation.value=100;designRotation=0;designGrayscaleOn=false;if(designGrayscale)designGrayscale.classList.remove("active");if(designImage)drawDesignPreview()});
+designRotateLeft?.addEventListener("click",()=>{designRotation=(designRotation+270)%360;if(designImage)drawDesignPreview()});
+designRotateRight?.addEventListener("click",()=>{designRotation=(designRotation+90)%360;if(designImage)drawDesignPreview()});
+designGrayscale?.addEventListener("click",()=>{designGrayscaleOn=!designGrayscaleOn;designGrayscale.classList.toggle("active",designGrayscaleOn);if(designImage)drawDesignPreview()});
 designDownloadButton?.addEventListener("click",()=>{if(!designCanvas||!designImage)return;designCanvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="bendigo-design.png";a.click();setTimeout(()=>URL.revokeObjectURL(url),500)},"image/png")});
 
 
