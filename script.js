@@ -646,11 +646,15 @@ async function refreshGithubWorkspace() {
     const filesData = await filesResponse.json();
     if (!statusResponse.ok || !filesResponse.ok) throw new Error(repoData.error || filesData.error || "GitHub sync failed.");
     if (branchName) branchName.textContent = repoData.branch || "main";
-    if (status) status.textContent = repoData.writeEnabled ? "Synced • write access ready" : "Synced • read-only";
+    if (status) {
+      status.textContent = repoData.writeEnabled
+        ? "Repository connected • write-ready"
+        : "Repository connected • read-only";
+    }
     const mode = $("githubConnectionMode");
-    if (mode) mode.textContent = repoData.writeEnabled ? "CONNECTED" : "READ-ONLY";
+    if (mode) mode.textContent = repoData.writeEnabled ? "WRITE-READY" : "READ-ONLY";
     const bottomGithub = $("bottomGithubStatus");
-    if (bottomGithub) bottomGithub.textContent = repoData.writeEnabled ? "CONNECTED" : "READ-ONLY";
+    if (bottomGithub) bottomGithub.textContent = repoData.writeEnabled ? "WRITE-READY" : "READ-ONLY";
     ["githubBranchButton","githubCommitButton","githubPrButton"].forEach(id => { const button = $(id); if (button) button.disabled = !repoData.writeEnabled; });
     if (box) {
       box.innerHTML = "";
