@@ -908,3 +908,14 @@ body.sidebar-collapsed .app{grid-template-columns:72px 1fr}body.sidebar-collapse
 
 /* Design Studio editing controls */
 .design-actions{display:flex;flex-wrap:wrap;gap:8px}.design-actions button{cursor:pointer}
+
+
+/* Bendigo web search result cards */
+.search-results{width:min(100%,760px);box-sizing:border-box}
+.search-result-card{display:flex;gap:12px;align-items:flex-start;margin-top:10px;padding:12px 14px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.045);color:inherit;text-decoration:none;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.search-result-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.20);transform:translateY(-1px)}
+.search-result-number{flex:0 0 24px;height:24px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.10);font-size:12px}
+.search-result-content{min-width:0;display:flex;flex-direction:column;gap:4px}
+.search-result-content strong{font-size:14px}
+.search-result-content small{font-size:11px;opacity:.58;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-result-content p{margin:2px 0 0;font-size:12px;line-height:1.5;opacity:.72}
