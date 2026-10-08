@@ -729,3 +729,31 @@ designDropZone?.addEventListener("dragleave",()=>designDropZone.classList.remove
 designDropZone?.addEventListener("drop",e=>{e.preventDefault();designDropZone.classList.remove("dragover");loadDesignImage(e.dataTransfer.files?.[0])});
 designResetButton?.addEventListener("click",()=>{designBrightness.value=100;designContrast.value=100;designSaturation.value=100;if(designImage)drawDesignPreview()});
 designDownloadButton?.addEventListener("click",()=>{if(!designCanvas||!designImage)return;designCanvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="bendigo-design.png";a.click();setTimeout(()=>URL.revokeObjectURL(url),500)},"image/png")});
+
+
+// Bendigo AI Design Assistant: local, non-destructive presets with no API key required.
+const designAssistantStatus=$("designAssistantStatus");
+const designGoals={
+  social:{name:"Social post",brightness:106,contrast:108,saturation:112},
+  portrait:{name:"Portrait",brightness:104,contrast:96,saturation:94},
+  cinematic:{name:"Cinematic",brightness:96,contrast:116,saturation:86},
+  clean:{name:"Clean & bright",brightness:112,contrast:104,saturation:105}
+};
+document.querySelectorAll("[data-design-goal]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    if(!designImage){
+      if(designAssistantStatus)designAssistantStatus.textContent="Upload an image first, then choose a design goal.";
+      return;
+    }
+    const preset=designGoals[button.dataset.designGoal];
+    if(!preset)return;
+    designBrightness.value=preset.brightness;
+    designContrast.value=preset.contrast;
+    designSaturation.value=preset.saturation;
+    document.querySelectorAll("[data-design-goal]").forEach(item=>item.classList.remove("active"));
+    button.classList.add("active");
+    drawDesignPreview();
+    if(designStatus)designStatus.textContent=preset.name+" preset • ready to refine";
+    if(designAssistantStatus)designAssistantStatus.textContent=preset.name+" preset applied. You can fine-tune the sliders.";
+  });
+});
