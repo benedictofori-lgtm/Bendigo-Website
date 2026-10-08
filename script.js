@@ -65,20 +65,51 @@ async function sendMessage(message = input?.value.trim()) {
       addMessage(await performWebSearch(searchMatch[1].trim()), "ai");
       return;
     }
+
     const history = [...chat.querySelectorAll(".message")].slice(-10).map(el => ({
       role: el.classList.contains("user") ? "user" : "assistant",
       content: el.textContent
     }));
 
-    const response = await fetch(apiUrl("/api/chat"), {
+    const response = await fetch(apiUrl("/api/chat/stream"), {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ message, sessionId, history })
+      headers: {"Content-Type": "application/json", "Accept": "text/event-stream"},
+      body: JSON.stringify({message, sessionId, history})
     });
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "Bendigo AI could not respond.");
-    addMessage(data.reply || "I received your message, but there was no response.", "ai");
+    if (!response.ok || !response.body) {
+      throw new Error("Bendigo AI could not start the response stream.");
+    }
+
+    const aiMessage = document.createElement("div");
+    aiMessage.className = "message ai";
+    chat.appendChild(aiMessage);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const events = buffer.split("\n\n");
+      buffer = events.pop() || "";
+
+      for (const rawEvent of events) {
+        const dataLines = rawEvent.split("\n").filter(line => line.startsWith("data: "));
+        const eventName = (rawEvent.match(/^event:\s*(.+)$/m) || [,""])[1];
+        const data = dataLines.map(line => line.slice(6)).join("\n");
+        if (eventName === "token") {
+          aiMessage.textContent += data;
+          chat.scrollTop = chat.scrollHeight;
+        }
+      }
+    }
+
+    if (!aiMessage.textContent.trim()) {
+      aiMessage.textContent = "I received your message, but there was no response.";
+    }
   } catch (error) {
     addMessage("⚠️ " + error.message + " Check your Bendigo AI backend connection and try again.", "ai");
   } finally {
