@@ -169,7 +169,7 @@ def ai_model_reply(message: str, history: list[dict[str, Any]]):
     if not ai_gateway_configured():
         return None
 
-    input_items = [
+    input_items = []
     for item in history[-20:]:
         role = item.get("role")
         content = str(item.get("content", "")).strip()
