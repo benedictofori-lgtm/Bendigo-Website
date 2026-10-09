@@ -521,27 +521,39 @@ async def chat_stream(request: ChatRequest):
         }))
 
         reply = None
-        if ai_gateway_configured() or ollama_configured():
+        model_error = False
+        if ai_configured():
             try:
                 reply = ai_model_reply(message, request.history or messages[:-1])
             except Exception:
-                reply = None
+                model_error = True
 
+        model_used = bool(reply)
         reply = reply or make_reply(message)
         db_add_messages(session_id, [
             {"role": "user", "content": message},
             {"role": "assistant", "content": reply},
         ])
 
-        # Stream in small chunks so the UI can render a real assistant-style response.
-        for match in re.findall(r".{1,80}(?:\s+|$)", reply):
+        # Stream in small chunks so the UI can render an assistant-style response.
+        for match in re.findall(r".{1,80}(?:\\s+|$)", reply):
             if match:
                 yield sse_event("token", match)
         yield sse_event("done", json.dumps({
             "success": True,
             "sessionId": session_id,
-            "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if reply and ai_configured() else "bendigo-backend",
+            "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if model_used else "bendigo-backend",
             "aiConfigured": ai_configured(),
+            "modelUsed": model_used,
+            "fallback": not model_used,
+            "modelError": model_error,
+            "notice": (
+                "The AI model could not be reached; a basic fallback reply was used."
+                if model_error else (
+                    "No AI model is configured; a basic fallback reply was used."
+                    if not ai_configured() else None
+                )
+            ),
         }))
 
     return StreamingResponse(events(), media_type="text/event-stream", headers={
