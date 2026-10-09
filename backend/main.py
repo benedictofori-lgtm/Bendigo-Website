@@ -137,6 +137,16 @@ def ai_configured() -> bool:
 
 
 def ai_model_reply(message: str, history: list[dict[str, Any]]):
+    # The browser may include the current prompt in history and also send it
+    # separately as message. Remove that trailing duplicate before appending it.
+    history_items = list(history[-20:])
+    if (
+        history_items
+        and history_items[-1].get("role") == "user"
+        and str(history_items[-1].get("content", "")).strip() == message.strip()
+    ):
+        history_items.pop()
+
     if ollama_configured():
         messages = [{
             "role": "system",
@@ -146,7 +156,7 @@ def ai_model_reply(message: str, history: list[dict[str, Any]]):
                 "and keep unsafe or destructive operations out of generated examples."
             ),
         }]
-        for item in history[-20:]:
+        for item in history_items:
             role = item.get("role")
             text = str(item.get("content", "")).strip()
             if role in {"user", "assistant", "system"} and text:
@@ -174,7 +184,7 @@ def ai_model_reply(message: str, history: list[dict[str, Any]]):
         return None
 
     input_items = []
-    for item in history[-20:]:
+    for item in history_items:
         role = item.get("role")
         content = str(item.get("content", "")).strip()
         if role in {"user", "assistant", "system"} and content:
