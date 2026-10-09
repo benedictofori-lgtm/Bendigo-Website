@@ -82,7 +82,9 @@ class OllamaConfigurationTests(unittest.TestCase):
 
         self.assertEqual(result["code"], "print('Hello')")
         self.assertEqual(result["model"], "qwen2.5:3b")
-        self.assertEqual(result["status"], "generated")
+        self.assertEqual(result["status"], "model_generated")
+        self.assertTrue(result["modelUsed"])
+        self.assertFalse(result["fallback"])
         self.assertIn("Generate working python code", mocked_reply.call_args.args[0])
 
     def test_code_endpoint_falls_back_to_template_without_model(self):
@@ -92,6 +94,10 @@ class OllamaConfigurationTests(unittest.TestCase):
             result = asyncio.run(main.code(main.CodeRequest(language="python", prompt="Print hello")))
 
         self.assertEqual(result["model"], "bendigo-template-engine")
+        self.assertEqual(result["status"], "template_fallback")
+        self.assertFalse(result["modelUsed"])
+        self.assertTrue(result["fallback"])
+        self.assertIn("No AI model is configured", result["notice"])
         self.assertIn("Bendigo AI Python starter", result["code"])
 
     def test_ollama_empty_reply_is_rejected(self):
