@@ -118,7 +118,14 @@ async def startup_database() -> None:
 AI_BASE_URL = os.getenv("AI_BASE_URL", "").strip().rstrip("/")
 AI_MODEL = os.getenv("AI_MODEL", "").strip()
 AI_API_KEY = os.getenv("AI_API_KEY", "").strip()
+# Ollama is opt-in: set OLLAMA_BASE_URL locally to avoid pointing Render at localhost.
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "").strip().rstrip("/")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b").strip()
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+
+def ollama_configured() -> bool:
+    return bool(OLLAMA_BASE_URL and OLLAMA_MODEL)
 
 
 def ai_gateway_configured() -> bool:
@@ -126,10 +133,43 @@ def ai_gateway_configured() -> bool:
 
 
 def ai_model_reply(message: str, history: list[dict[str, Any]]):
+    if ollama_configured():
+        messages = [{
+            "role": "system",
+            "content": (
+                "You are Bendigo AI, a helpful coding and learning assistant. "
+                "Give accurate, clear answers. When writing code, explain important choices "
+                "and keep unsafe or destructive operations out of generated examples."
+            ),
+        }]
+        for item in history[-20:]:
+            role = item.get("role")
+            text = str(item.get("content", "")).strip()
+            if role in {"user", "assistant", "system"} and text:
+                messages.append({"role": role, "content": text})
+        messages.append({"role": "user", "content": message})
+        payload = json.dumps({
+            "model": OLLAMA_MODEL,
+            "messages": messages,
+            "stream": False,
+        }).encode("utf-8")
+        request = Request(
+            OLLAMA_BASE_URL + "/api/chat",
+            data=payload,
+            headers={"Content-Type": "application/json", "Accept": "application/json", "User-Agent": "Bendigo-AI"},
+            method="POST",
+        )
+        with urlopen(request, timeout=120) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        answer = data.get("message", {}).get("content")
+        if answer and str(answer).strip():
+            return str(answer).strip()
+        raise RuntimeError("Ollama returned no text.")
+
     if not ai_gateway_configured():
         return None
 
-    input_items = []
+    input_items = [
     for item in history[-20:]:
         role = item.get("role")
         content = str(item.get("content", "")).strip()
@@ -420,10 +460,10 @@ async def chat(request: ChatRequest):
 
     messages = db_get_history(session_id)
     model_reply = None
-    if ai_gateway_configured():
+    if ai_gateway_configured() or ollama_configured():
         try:
             model_reply = ai_model_reply(message, request.history or messages[:-1])
-        except Exception as exc:
+        except Exception:
             model_reply = None
 
     reply = model_reply or make_reply(message)
@@ -455,7 +495,7 @@ async def chat_stream(request: ChatRequest):
         }))
 
         reply = None
-        if ai_gateway_configured():
+        if ai_gateway_configured() or ollama_configured():
             try:
                 reply = ai_model_reply(message, request.history or messages[:-1])
             except Exception:
