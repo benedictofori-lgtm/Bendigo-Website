@@ -551,13 +551,34 @@ async def delete_chat_history(sessionId: str = Query(default="default", max_leng
 
 @app.post("/api/code")
 async def code(request: CodeRequest):
+    language = request.language.strip()
+    prompt = request.prompt.strip()
+    generated_code = None
+    model_name = "bendigo-template-engine"
+
+    if ai_configured():
+        code_request = (
+            f"Generate working {language} code for this request:\\n{prompt}\\n\\n"
+            "Return only the code, without Markdown fences or a long explanation. "
+            "Use safe, non-destructive defaults and include brief comments where useful."
+        )
+        try:
+            generated_code = ai_model_reply(code_request, [])
+            if generated_code:
+                generated_code = generated_code.strip()
+                generated_code = re.sub(r"^\\s*```[A-Za-z0-9_+-]*\\s*\\n", "", generated_code)
+                generated_code = re.sub(r"\\n```\\s*$", "", generated_code).strip()
+                model_name = OLLAMA_MODEL if ollama_configured() else AI_MODEL
+        except Exception:
+            generated_code = None
+
     return {
         "success": True,
-        "language": request.language.strip(),
-        "prompt": request.prompt.strip(),
-        "code": code_template(request.language, request.prompt),
+        "language": language,
+        "prompt": prompt,
+        "code": generated_code or code_template(language, prompt),
         "status": "generated",
-        "model": "bendigo-template-engine",
+        "model": model_name,
     }
 
 
