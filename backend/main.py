@@ -528,8 +528,8 @@ async def chat_stream(request: ChatRequest):
         yield sse_event("done", json.dumps({
             "success": True,
             "sessionId": session_id,
-            "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
-            "aiConfigured": ai_gateway_configured(),
+            "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if reply and ai_configured() else "bendigo-backend",
+            "aiConfigured": ai_configured(),
         }))
 
     return StreamingResponse(events(), media_type="text/event-stream", headers={
