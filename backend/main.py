@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from html import unescape
-from urllib.parse import quote, unquote
+from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.request import Request, urlopen
 import json
 import os
@@ -727,15 +727,24 @@ async def github_files():
 @app.get("/api/search")
 async def search(q: str = Query(min_length=1, max_length=500)):
     query = q.strip()
+    if not query:
+        raise HTTPException(status_code=422, detail="Search query cannot be blank.")
+
     url = "https://html.duckduckgo.com/html/?q=" + quote(query)
-    request = Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0 (Bendigo AI)", "Accept": "text/html"},
-    )
+    request = Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Bendigo AI)",
+        "Accept": "text/html",
+    })
 
     try:
         with urlopen(request, timeout=12) as response:
+            status = getattr(response, "status", 200)
+            if status < 200 or status >= 300:
+                raise RuntimeError("Unsuccessful search-provider response.")
             html = response.read().decode("utf-8", errors="ignore")
+
+        if not html.strip():
+            raise RuntimeError("Empty search-provider response.")
 
         results = []
         pattern = re.compile(
@@ -743,11 +752,16 @@ async def search(q: str = Query(min_length=1, max_length=500)):
             re.IGNORECASE | re.DOTALL,
         )
         for match in pattern.finditer(html):
-            result_url = unescape(match.group(1))
+            result_url = unescape(match.group(1)).strip()
             title = clean_html(match.group(2))
             if result_url.startswith("//"):
                 result_url = "https:" + result_url
-            if not title:
+            parsed_url = urlparse(result_url)
+            if parsed_url.path.startswith("/l/") and parsed_url.netloc.endswith("duckduckgo.com"):
+                destination = parse_qs(parsed_url.query).get("uddg", [""])[0]
+                result_url = unquote(destination) if destination else ""
+                parsed_url = urlparse(result_url)
+            if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc or not title:
                 continue
 
             snippet_match = re.search(
@@ -760,6 +774,18 @@ async def search(q: str = Query(min_length=1, max_length=500)):
             if len(results) >= 8:
                 break
 
-        return {"success": True, "query": query, "results": results, "timestamp": now_iso()}
-    except Exception as exc:
-        return {"success": False, "error": "Web search is temporarily unavailable.", "details": str(exc)[:500]}
+        return {
+            "success": True,
+            "query": query,
+            "results": results,
+            "notice": None if results else "No usable search results were found. Try different keywords.",
+            "timestamp": now_iso(),
+        }
+    except Exception:
+        return {
+            "success": False,
+            "query": query,
+            "results": [],
+            "error": "Web search is temporarily unavailable. Please try again.",
+            "timestamp": now_iso(),
+        }
