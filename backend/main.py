@@ -558,7 +558,7 @@ async def code(request: CodeRequest):
 
     if ai_configured():
         code_request = (
-            f"Generate working {language} code for this request:\\n{prompt}\\n\\n"
+            f"Generate working {language} code for this request:\n{prompt}\n\n"
             "Return only the code, without Markdown fences or a long explanation. "
             "Use safe, non-destructive defaults and include brief comments where useful."
         )
@@ -566,8 +566,8 @@ async def code(request: CodeRequest):
             generated_code = ai_model_reply(code_request, [])
             if generated_code:
                 generated_code = generated_code.strip()
-                generated_code = re.sub(r"^\\s*```[A-Za-z0-9_+-]*\\s*\\n", "", generated_code)
-                generated_code = re.sub(r"\\n```\\s*$", "", generated_code).strip()
+                generated_code = re.sub(r"^\s*```[A-Za-z0-9_+-]*\s*\n", "", generated_code)
+                generated_code = re.sub(r"\n```\s*$", "", generated_code).strip()
                 model_name = OLLAMA_MODEL if ollama_configured() else AI_MODEL
         except Exception:
             generated_code = None
