@@ -132,6 +132,10 @@ def ai_gateway_configured() -> bool:
     return bool(AI_BASE_URL and AI_MODEL)
 
 
+def ai_configured() -> bool:
+    return ai_gateway_configured() or ollama_configured()
+
+
 def ai_model_reply(message: str, history: list[dict[str, Any]]):
     if ollama_configured():
         messages = [{
@@ -375,8 +379,8 @@ async def health():
         "status": "healthy",
         "service": "bendigo-ai-backend",
         "version": APP_VERSION,
-        "aiConfigured": ai_gateway_configured(),
-        "aiModel": AI_MODEL or "not configured",
+        "aiConfigured": ai_configured(),
+        "aiModel": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or "not configured"),
         "database": {
             "configured": database_configured(),
             "type": "postgresql" if database_configured() else "memory-fallback",
@@ -413,10 +417,10 @@ async def db_status():
 @app.get("/api/ai/status")
 async def ai_status():
     return {
-        "configured": ai_gateway_configured(),
-        "provider": "responses-api-compatible" if ai_gateway_configured() else None,
-        "model": AI_MODEL or None,
-        "baseUrlConfigured": bool(AI_BASE_URL),
+        "configured": ai_configured(),
+        "provider": "ollama" if ollama_configured() else ("responses-api-compatible" if ai_gateway_configured() else None),
+        "model": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or None),
+        "baseUrlConfigured": bool(OLLAMA_BASE_URL or AI_BASE_URL),
         "credentialConfigured": bool(AI_API_KEY),
         "browserSecretExposure": False,
     }
@@ -435,7 +439,7 @@ async def api_test():
             "codeGeneration": True,
             "githubRead": True,
             "githubWrite": bool(GITHUB_TOKEN),
-            "aiModel": ai_gateway_configured(),
+            "aiModel": ai_configured(),
         },
     }
 
@@ -447,8 +451,8 @@ async def status():
         "status": "connected",
         "version": APP_VERSION,
         "time": now_iso(),
-        "aiModel": AI_MODEL or "not configured",
-        "aiConfigured": ai_gateway_configured(),
+        "aiModel": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or "not configured"),
+        "aiConfigured": ai_configured(),
         "githubWrite": bool(GITHUB_TOKEN),
     }
 
@@ -477,8 +481,8 @@ async def chat(request: ChatRequest):
         "reply": reply,
         "sessionId": session_id,
         "timestamp": now_iso(),
-        "model": AI_MODEL if model_reply else "bendigo-backend",
-        "aiConfigured": ai_gateway_configured(),
+        "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if model_reply else "bendigo-backend",
+        "aiConfigured": ai_configured(),
     }
 
 
@@ -491,7 +495,7 @@ async def chat_stream(request: ChatRequest):
         messages = db_get_history(session_id)
         yield sse_event("start", json.dumps({
             "sessionId": session_id,
-            "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
+            "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if ai_configured() else "bendigo-backend",
         }))
 
         reply = None
