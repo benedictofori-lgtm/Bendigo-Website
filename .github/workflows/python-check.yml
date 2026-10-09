@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'backend/**'
+      - 'tests/**'
       - 'requirements.txt'
       - '.github/workflows/python-check.yml'
   push:
