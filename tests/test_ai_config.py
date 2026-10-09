@@ -71,6 +71,29 @@ class OllamaConfigurationTests(unittest.TestCase):
         ]
         self.assertEqual(len(user_messages), 1)
 
+
+    def test_code_endpoint_uses_configured_model_and_returns_code(self):
+        import asyncio
+
+        with patch.object(main, "ai_configured", return_value=True), \
+             patch.object(main, "ollama_configured", return_value=True), \
+             patch.object(main, "ai_model_reply", return_value="print('Hello')") as mocked_reply:
+            result = asyncio.run(main.code(main.CodeRequest(language="python", prompt="Print hello")))
+
+        self.assertEqual(result["code"], "print('Hello')")
+        self.assertEqual(result["model"], "qwen2.5:3b")
+        self.assertEqual(result["status"], "generated")
+        self.assertIn("Generate working python code", mocked_reply.call_args.args[0])
+
+    def test_code_endpoint_falls_back_to_template_without_model(self):
+        import asyncio
+
+        with patch.object(main, "ai_configured", return_value=False):
+            result = asyncio.run(main.code(main.CodeRequest(language="python", prompt="Print hello")))
+
+        self.assertEqual(result["model"], "bendigo-template-engine")
+        self.assertIn("Bendigo AI Python starter", result["code"])
+
     def test_ollama_empty_reply_is_rejected(self):
         response = Mock()
         response.__enter__ = Mock(return_value=response)
