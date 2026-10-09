@@ -474,11 +474,13 @@ async def chat(request: ChatRequest):
 
     messages = db_get_history(session_id)
     model_reply = None
-    if ai_gateway_configured() or ollama_configured():
+    model_error = False
+    if ai_configured():
         try:
             model_reply = ai_model_reply(message, request.history or messages[:-1])
         except Exception:
-            model_reply = None
+            # Keep internal endpoint details out of the public response.
+            model_error = True
 
     reply = model_reply or make_reply(message)
     db_add_messages(session_id, [
@@ -493,6 +495,16 @@ async def chat(request: ChatRequest):
         "timestamp": now_iso(),
         "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if model_reply else "bendigo-backend",
         "aiConfigured": ai_configured(),
+        "modelUsed": bool(model_reply),
+        "fallback": not bool(model_reply),
+        "modelError": model_error,
+        "notice": (
+            "The AI model could not be reached; a basic fallback reply was used."
+            if model_error else (
+                "No AI model is configured; a basic fallback reply was used."
+                if not ai_configured() else None
+            )
+        ),
     }
 
 
@@ -572,13 +584,23 @@ async def code(request: CodeRequest):
         except Exception:
             generated_code = None
 
+    used_model = bool(generated_code)
     return {
         "success": True,
         "language": language,
         "prompt": prompt,
         "code": generated_code or code_template(language, prompt),
-        "status": "generated",
+        "status": "model_generated" if used_model else "template_fallback",
         "model": model_name,
+        "modelUsed": used_model,
+        "fallback": not used_model,
+        "notice": (
+            None if used_model else (
+                "The configured AI model could not be reached; a starter template was returned."
+                if ai_configured() else
+                "No AI model is configured; a starter template was returned."
+            )
+        ),
     }
 
 
