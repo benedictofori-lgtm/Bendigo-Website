@@ -47,6 +47,30 @@ class OllamaConfigurationTests(unittest.TestCase):
         self.assertEqual(payload["messages"][-2]["content"], "I am learning web development.")
         self.assertEqual(payload["messages"][-1]["content"], "What is HTML?")
 
+    def test_current_prompt_is_not_duplicated_when_in_history(self):
+        response = Mock()
+        response.__enter__ = Mock(return_value=response)
+        response.__exit__ = Mock(return_value=False)
+        response.read.return_value = json.dumps({
+            "message": {"content": "A response"}
+        }).encode("utf-8")
+        history = [
+            {"role": "user", "content": "Earlier question"},
+            {"role": "assistant", "content": "Earlier answer"},
+            {"role": "user", "content": "Current question"},
+        ]
+
+        with patch.object(main, "urlopen", return_value=response) as mocked_urlopen:
+            main.ai_model_reply("Current question", history)
+
+        request = mocked_urlopen.call_args.args[0]
+        payload = json.loads(request.data.decode("utf-8"))
+        user_messages = [
+            item for item in payload["messages"]
+            if item["role"] == "user" and item["content"] == "Current question"
+        ]
+        self.assertEqual(len(user_messages), 1)
+
     def test_ollama_empty_reply_is_rejected(self):
         response = Mock()
         response.__enter__ = Mock(return_value=response)
