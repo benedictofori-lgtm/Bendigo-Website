@@ -46,10 +46,22 @@ function setThinking(value) {
 }
 
 async function performWebSearch(query) {
-  const response = await fetch(apiUrl("/api/search?q=" + encodeURIComponent(query)));
+  let response;
+  try {
+    response = await fetch(apiUrl("/api/search?q=" + encodeURIComponent(query)));
+  } catch {
+    throw new Error("Could not connect to Bendigo AI search. Check your connection and try again.");
+  }
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Search failed.");
-  if (!data.results?.length) return {text: "No search results found for: " + query, results: []};
+  if (!response.ok || data.success === false) {
+    throw new Error(data.error || "Web search is temporarily unavailable. Please try again.");
+  }
+  if (!Array.isArray(data.results) || !data.results.length) {
+    return {
+      text: data.notice || "No usable search results found for: " + query,
+      results: [],
+    };
+  }
   return {text: "Search results for: " + query, results: data.results};
 }
 
@@ -112,6 +124,7 @@ async function requestChatReply(message, history) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let completion = null;
 
       while (true) {
         const {value, done} = await reader.read();
@@ -122,15 +135,23 @@ async function requestChatReply(message, history) {
 
         for (const rawEvent of events) {
           const dataLines = rawEvent.split("\n").filter(line => line.startsWith("data: "));
-          const eventName = (rawEvent.match(/^event:\s*(.+)$/m) || [,""])[1];
+          const eventName = (rawEvent.match(/^event:\\s*(.+)$/m) || [,""])[1];
           const data = dataLines.map(line => line.slice(6)).join("\n");
           if (eventName === "token") {
             aiMessage.textContent += data;
             chat.scrollTop = chat.scrollHeight;
+          } else if (eventName === "done") {
+            try { completion = JSON.parse(data); } catch { completion = null; }
           }
         }
       }
 
+      if (completion?.notice) {
+        const notice = document.createElement("small");
+        notice.className = "message-notice";
+        notice.textContent = completion.notice;
+        aiMessage.appendChild(notice);
+      }
       if (aiMessage.textContent.trim()) return;
       aiMessage.remove();
     }
@@ -145,8 +166,9 @@ async function requestChatReply(message, history) {
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Bendigo AI could not respond.");
+  if (!response.ok || data.success === false) throw new Error(data.error || "Bendigo AI could not respond.");
   addMessage(data.reply || "Bendigo AI returned an empty response.", "ai");
+  if (data.notice) addMessage(data.notice, "notice");
 }
 
 async function sendMessage(message = input?.value.trim()) {

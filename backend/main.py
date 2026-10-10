@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from html import unescape
-from urllib.parse import quote, unquote
+from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.request import Request, urlopen
 import json
 import os
@@ -118,19 +118,73 @@ async def startup_database() -> None:
 AI_BASE_URL = os.getenv("AI_BASE_URL", "").strip().rstrip("/")
 AI_MODEL = os.getenv("AI_MODEL", "").strip()
 AI_API_KEY = os.getenv("AI_API_KEY", "").strip()
+# Ollama is opt-in: set OLLAMA_BASE_URL locally to avoid pointing Render at localhost.
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "").strip().rstrip("/")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b").strip()
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+
+def ollama_configured() -> bool:
+    return bool(OLLAMA_BASE_URL and OLLAMA_MODEL)
 
 
 def ai_gateway_configured() -> bool:
     return bool(AI_BASE_URL and AI_MODEL)
 
 
+def ai_configured() -> bool:
+    return ai_gateway_configured() or ollama_configured()
+
+
 def ai_model_reply(message: str, history: list[dict[str, Any]]):
+    # The browser may include the current prompt in history and also send it
+    # separately as message. Remove that trailing duplicate before appending it.
+    history_items = list(history[-20:])
+    if (
+        history_items
+        and history_items[-1].get("role") == "user"
+        and str(history_items[-1].get("content", "")).strip() == message.strip()
+    ):
+        history_items.pop()
+
+    if ollama_configured():
+        messages = [{
+            "role": "system",
+            "content": (
+                "You are Bendigo AI, a helpful coding and learning assistant. "
+                "Give accurate, clear answers. When writing code, explain important choices "
+                "and keep unsafe or destructive operations out of generated examples."
+            ),
+        }]
+        for item in history_items:
+            role = item.get("role")
+            text = str(item.get("content", "")).strip()
+            if role in {"user", "assistant", "system"} and text:
+                messages.append({"role": role, "content": text})
+        messages.append({"role": "user", "content": message})
+        payload = json.dumps({
+            "model": OLLAMA_MODEL,
+            "messages": messages,
+            "stream": False,
+        }).encode("utf-8")
+        request = Request(
+            OLLAMA_BASE_URL + "/api/chat",
+            data=payload,
+            headers={"Content-Type": "application/json", "Accept": "application/json", "User-Agent": "Bendigo-AI"},
+            method="POST",
+        )
+        with urlopen(request, timeout=120) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        answer = data.get("message", {}).get("content")
+        if answer and str(answer).strip():
+            return str(answer).strip()
+        raise RuntimeError("Ollama returned no text.")
+
     if not ai_gateway_configured():
         return None
 
     input_items = []
-    for item in history[-20:]:
+    for item in history_items:
         role = item.get("role")
         content = str(item.get("content", "")).strip()
         if role in {"user", "assistant", "system"} and content:
@@ -335,8 +389,8 @@ async def health():
         "status": "healthy",
         "service": "bendigo-ai-backend",
         "version": APP_VERSION,
-        "aiConfigured": ai_gateway_configured(),
-        "aiModel": AI_MODEL or "not configured",
+        "aiConfigured": ai_configured(),
+        "aiModel": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or "not configured"),
         "database": {
             "configured": database_configured(),
             "type": "postgresql" if database_configured() else "memory-fallback",
@@ -373,10 +427,10 @@ async def db_status():
 @app.get("/api/ai/status")
 async def ai_status():
     return {
-        "configured": ai_gateway_configured(),
-        "provider": "responses-api-compatible" if ai_gateway_configured() else None,
-        "model": AI_MODEL or None,
-        "baseUrlConfigured": bool(AI_BASE_URL),
+        "configured": ai_configured(),
+        "provider": "ollama" if ollama_configured() else ("responses-api-compatible" if ai_gateway_configured() else None),
+        "model": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or None),
+        "baseUrlConfigured": bool(OLLAMA_BASE_URL or AI_BASE_URL),
         "credentialConfigured": bool(AI_API_KEY),
         "browserSecretExposure": False,
     }
@@ -395,7 +449,7 @@ async def api_test():
             "codeGeneration": True,
             "githubRead": True,
             "githubWrite": bool(GITHUB_TOKEN),
-            "aiModel": ai_gateway_configured(),
+            "aiModel": ai_configured(),
         },
     }
 
@@ -407,8 +461,8 @@ async def status():
         "status": "connected",
         "version": APP_VERSION,
         "time": now_iso(),
-        "aiModel": AI_MODEL or "not configured",
-        "aiConfigured": ai_gateway_configured(),
+        "aiModel": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or "not configured"),
+        "aiConfigured": ai_configured(),
         "githubWrite": bool(GITHUB_TOKEN),
     }
 
@@ -420,11 +474,13 @@ async def chat(request: ChatRequest):
 
     messages = db_get_history(session_id)
     model_reply = None
-    if ai_gateway_configured():
+    model_error = False
+    if ai_configured():
         try:
             model_reply = ai_model_reply(message, request.history or messages[:-1])
-        except Exception as exc:
-            model_reply = None
+        except Exception:
+            # Keep internal endpoint details out of the public response.
+            model_error = True
 
     reply = model_reply or make_reply(message)
     db_add_messages(session_id, [
@@ -437,8 +493,18 @@ async def chat(request: ChatRequest):
         "reply": reply,
         "sessionId": session_id,
         "timestamp": now_iso(),
-        "model": AI_MODEL if model_reply else "bendigo-backend",
-        "aiConfigured": ai_gateway_configured(),
+        "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if model_reply else "bendigo-backend",
+        "aiConfigured": ai_configured(),
+        "modelUsed": bool(model_reply),
+        "fallback": not bool(model_reply),
+        "modelError": model_error,
+        "notice": (
+            "The AI model could not be reached; a basic fallback reply was used."
+            if model_error else (
+                "No AI model is configured; a basic fallback reply was used."
+                if not ai_configured() else None
+            )
+        ),
     }
 
 
@@ -451,31 +517,43 @@ async def chat_stream(request: ChatRequest):
         messages = db_get_history(session_id)
         yield sse_event("start", json.dumps({
             "sessionId": session_id,
-            "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
+            "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if ai_configured() else "bendigo-backend",
         }))
 
         reply = None
-        if ai_gateway_configured():
+        model_error = False
+        if ai_configured():
             try:
                 reply = ai_model_reply(message, request.history or messages[:-1])
             except Exception:
-                reply = None
+                model_error = True
 
+        model_used = bool(reply)
         reply = reply or make_reply(message)
         db_add_messages(session_id, [
             {"role": "user", "content": message},
             {"role": "assistant", "content": reply},
         ])
 
-        # Stream in small chunks so the UI can render a real assistant-style response.
+        # Stream in small chunks so the UI can render an assistant-style response.
         for match in re.findall(r".{1,80}(?:\s+|$)", reply):
             if match:
                 yield sse_event("token", match)
         yield sse_event("done", json.dumps({
             "success": True,
             "sessionId": session_id,
-            "model": AI_MODEL if ai_gateway_configured() else "bendigo-backend",
-            "aiConfigured": ai_gateway_configured(),
+            "model": (OLLAMA_MODEL if ollama_configured() else AI_MODEL) if model_used else "bendigo-backend",
+            "aiConfigured": ai_configured(),
+            "modelUsed": model_used,
+            "fallback": not model_used,
+            "modelError": model_error,
+            "notice": (
+                "The AI model could not be reached; a basic fallback reply was used."
+                if model_error else (
+                    "No AI model is configured; a basic fallback reply was used."
+                    if not ai_configured() else None
+                )
+            ),
         }))
 
     return StreamingResponse(events(), media_type="text/event-stream", headers={
@@ -497,13 +575,44 @@ async def delete_chat_history(sessionId: str = Query(default="default", max_leng
 
 @app.post("/api/code")
 async def code(request: CodeRequest):
+    language = request.language.strip()
+    prompt = request.prompt.strip()
+    generated_code = None
+    model_name = "bendigo-template-engine"
+
+    if ai_configured():
+        code_request = (
+            f"Generate working {language} code for this request:\n{prompt}\n\n"
+            "Return only the code, without Markdown fences or a long explanation. "
+            "Use safe, non-destructive defaults and include brief comments where useful."
+        )
+        try:
+            generated_code = ai_model_reply(code_request, [])
+            if generated_code:
+                generated_code = generated_code.strip()
+                generated_code = re.sub(r"^\s*```[A-Za-z0-9_+-]*\s*\n", "", generated_code)
+                generated_code = re.sub(r"\n```\s*$", "", generated_code).strip()
+                model_name = OLLAMA_MODEL if ollama_configured() else AI_MODEL
+        except Exception:
+            generated_code = None
+
+    used_model = bool(generated_code)
     return {
         "success": True,
-        "language": request.language.strip(),
-        "prompt": request.prompt.strip(),
-        "code": code_template(request.language, request.prompt),
-        "status": "generated",
-        "model": "bendigo-template-engine",
+        "language": language,
+        "prompt": prompt,
+        "code": generated_code or code_template(language, prompt),
+        "status": "model_generated" if used_model else "template_fallback",
+        "model": model_name,
+        "modelUsed": used_model,
+        "fallback": not used_model,
+        "notice": (
+            None if used_model else (
+                "The configured AI model could not be reached; a starter template was returned."
+                if ai_configured() else
+                "No AI model is configured; a starter template was returned."
+            )
+        ),
     }
 
 
@@ -618,15 +727,24 @@ async def github_files():
 @app.get("/api/search")
 async def search(q: str = Query(min_length=1, max_length=500)):
     query = q.strip()
+    if not query:
+        raise HTTPException(status_code=422, detail="Search query cannot be blank.")
+
     url = "https://html.duckduckgo.com/html/?q=" + quote(query)
-    request = Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0 (Bendigo AI)", "Accept": "text/html"},
-    )
+    request = Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Bendigo AI)",
+        "Accept": "text/html",
+    })
 
     try:
         with urlopen(request, timeout=12) as response:
+            status = getattr(response, "status", 200)
+            if status < 200 or status >= 300:
+                raise RuntimeError("Unsuccessful search-provider response.")
             html = response.read().decode("utf-8", errors="ignore")
+
+        if not html.strip():
+            raise RuntimeError("Empty search-provider response.")
 
         results = []
         pattern = re.compile(
@@ -634,11 +752,16 @@ async def search(q: str = Query(min_length=1, max_length=500)):
             re.IGNORECASE | re.DOTALL,
         )
         for match in pattern.finditer(html):
-            result_url = unescape(match.group(1))
+            result_url = unescape(match.group(1)).strip()
             title = clean_html(match.group(2))
             if result_url.startswith("//"):
                 result_url = "https:" + result_url
-            if not title:
+            parsed_url = urlparse(result_url)
+            if parsed_url.path.startswith("/l/") and parsed_url.netloc.endswith("duckduckgo.com"):
+                destination = parse_qs(parsed_url.query).get("uddg", [""])[0]
+                result_url = unquote(destination) if destination else ""
+                parsed_url = urlparse(result_url)
+            if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc or not title:
                 continue
 
             snippet_match = re.search(
@@ -651,6 +774,18 @@ async def search(q: str = Query(min_length=1, max_length=500)):
             if len(results) >= 8:
                 break
 
-        return {"success": True, "query": query, "results": results, "timestamp": now_iso()}
-    except Exception as exc:
-        return {"success": False, "error": "Web search is temporarily unavailable.", "details": str(exc)[:500]}
+        return {
+            "success": True,
+            "query": query,
+            "results": results,
+            "notice": None if results else "No usable search results were found. Try different keywords.",
+            "timestamp": now_iso(),
+        }
+    except Exception:
+        return {
+            "success": False,
+            "query": query,
+            "results": [],
+            "error": "Web search is temporarily unavailable. Please try again.",
+            "timestamp": now_iso(),
+        }
