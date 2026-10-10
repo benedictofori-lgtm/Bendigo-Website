@@ -536,7 +536,7 @@ async def chat_stream(request: ChatRequest):
         ])
 
         # Stream in small chunks so the UI can render an assistant-style response.
-        for match in re.findall(r".{1,80}(?:\\s+|$)", reply):
+        for match in re.findall(r".{1,80}(?:\s+|$)", reply):
             if match:
                 yield sse_event("token", match)
         yield sse_event("done", json.dumps({
