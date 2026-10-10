@@ -87,9 +87,40 @@ class BackendEndpointTests(unittest.IsolatedAsyncioTestCase):
     async def test_ai_status_does_not_expose_credentials(self):
         result = await main.ai_status()
         self.assertFalse(result["configured"])
+        self.assertEqual(result["connectionStatus"], "not_configured")
         self.assertFalse(result["browserSecretExposure"])
         self.assertNotIn("apiKey", result)
         self.assertNotIn("token", result)
+
+    async def test_ollama_probe_reports_unconfigured_without_network_call(self):
+        result = main.probe_ollama()
+        self.assertEqual(result, {
+            "status": "not_configured",
+            "reachable": False,
+            "modelAvailable": False,
+        })
+
+    async def test_ollama_probe_confirms_selected_model_is_available(self):
+        response = type("Response", (), {
+            "__enter__": lambda self: self,
+            "__exit__": lambda self, *args: None,
+            "read": lambda self: b'{"models":[{"name":"qwen2.5:3b"}]}',
+        })()
+        with patch.object(main, "OLLAMA_BASE_URL", "https://ollama.example"), \\
+             patch.object(main, "OLLAMA_MODEL", "qwen2.5:3b"), \\
+             patch.object(main, "urlopen", return_value=response):
+            result = main.probe_ollama()
+        self.assertEqual(result["status"], "ready")
+        self.assertTrue(result["reachable"])
+        self.assertTrue(result["modelAvailable"])
+
+    async def test_ollama_probe_hides_connection_errors(self):
+        with patch.object(main, "OLLAMA_BASE_URL", "https://ollama.example"), \\
+             patch.object(main, "OLLAMA_MODEL", "qwen2.5:3b"), \\
+             patch.object(main, "urlopen", side_effect=TimeoutError("private endpoint detail")):
+            result = main.probe_ollama()
+        self.assertEqual(result["status"], "unreachable")
+        self.assertNotIn("private endpoint detail", str(result))
 
 
 if __name__ == "__main__":
