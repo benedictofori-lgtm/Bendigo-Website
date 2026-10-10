@@ -106,18 +106,22 @@ class BackendEndpointTests(unittest.IsolatedAsyncioTestCase):
             "__exit__": lambda self, *args: None,
             "read": lambda self: b'{"models":[{"name":"qwen2.5:3b"}]}',
         })()
-        with patch.object(main, "OLLAMA_BASE_URL", "https://ollama.example"), \\
-             patch.object(main, "OLLAMA_MODEL", "qwen2.5:3b"), \\
-             patch.object(main, "urlopen", return_value=response):
+        with (
+            patch.object(main, "OLLAMA_BASE_URL", "https://ollama.example"),
+            patch.object(main, "OLLAMA_MODEL", "qwen2.5:3b"),
+            patch.object(main, "urlopen", return_value=response),
+        ):
             result = main.probe_ollama()
         self.assertEqual(result["status"], "ready")
         self.assertTrue(result["reachable"])
         self.assertTrue(result["modelAvailable"])
 
     async def test_ollama_probe_hides_connection_errors(self):
-        with patch.object(main, "OLLAMA_BASE_URL", "https://ollama.example"), \\
-             patch.object(main, "OLLAMA_MODEL", "qwen2.5:3b"), \\
-             patch.object(main, "urlopen", side_effect=TimeoutError("private endpoint detail")):
+        with (
+            patch.object(main, "OLLAMA_BASE_URL", "https://ollama.example"),
+            patch.object(main, "OLLAMA_MODEL", "qwen2.5:3b"),
+            patch.object(main, "urlopen", side_effect=TimeoutError("private endpoint detail")),
+        ):
             result = main.probe_ollama()
         self.assertEqual(result["status"], "unreachable")
         self.assertNotIn("private endpoint detail", str(result))
