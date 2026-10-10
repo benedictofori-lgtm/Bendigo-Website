@@ -3,6 +3,7 @@ from html import unescape
 from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.request import Request, urlopen
 import json
+import logging
 import os
 import re
 from typing import Any
@@ -38,6 +39,7 @@ app.add_middleware(
 )
 
 chat_history: dict[str, list[dict[str, str]]] = {}
+logger = logging.getLogger(__name__)
 
 
 def database_configured() -> bool:
@@ -111,7 +113,12 @@ def db_delete_history(session_id: str) -> None:
 
 @app.on_event("startup")
 async def startup_database() -> None:
-    init_database()
+    try:
+        init_database()
+    except psycopg.Error:
+        # Keep the API available during temporary database outages. Database
+        # requests still fail visibly until the connection is restored.
+        logger.exception("Database initialization failed; database-backed features may be unavailable.")
 
 # Optional server-side AI model gateway.
 # No model credential is ever sent to the browser.
