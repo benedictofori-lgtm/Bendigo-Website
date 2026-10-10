@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from unittest.mock import Mock, patch
 
@@ -19,7 +20,7 @@ class WebSearchTests(unittest.TestCase):
         <div class="result__snippet">A useful <b>summary</b> here.</div>
         '''
         with patch.object(main, "urlopen", return_value=self.response(html)):
-            result = main.search("example")
+            result = asyncio.run(main.search("example"))
 
         self.assertTrue(result["success"])
         self.assertEqual(result["query"], "example")
@@ -34,7 +35,7 @@ class WebSearchTests(unittest.TestCase):
         <a class="result__a" href="https://duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Farticle">Article</a>
         '''
         with patch.object(main, "urlopen", return_value=self.response(html)):
-            result = main.search("article")
+            result = asyncio.run(main.search("article"))
 
         self.assertTrue(result["success"])
         self.assertEqual(result["results"][0]["url"], "https://example.com/article")
@@ -45,14 +46,14 @@ class WebSearchTests(unittest.TestCase):
         <a class="result__a" href="https://example.com/good">Good result</a>
         '''
         with patch.object(main, "urlopen", return_value=self.response(html)):
-            result = main.search("test")
+            result = asyncio.run(main.search("test"))
 
         self.assertTrue(result["success"])
         self.assertEqual([item["title"] for item in result["results"]], ["Good result"])
 
     def test_search_empty_results_returns_notice(self):
         with patch.object(main, "urlopen", return_value=self.response("<html><body>No matches</body></html>")):
-            result = main.search("nothing")
+            result = asyncio.run(main.search("nothing"))
 
         self.assertTrue(result["success"])
         self.assertEqual(result["results"], [])
@@ -60,7 +61,7 @@ class WebSearchTests(unittest.TestCase):
 
     def test_search_provider_failure_returns_safe_error(self):
         with patch.object(main, "urlopen", side_effect=TimeoutError("private connection detail")):
-            result = main.search("test")
+            result = asyncio.run(main.search("test"))
 
         self.assertFalse(result["success"])
         self.assertEqual(result["results"], [])
@@ -69,7 +70,7 @@ class WebSearchTests(unittest.TestCase):
 
     def test_search_non_success_http_status_is_handled(self):
         with patch.object(main, "urlopen", return_value=self.response("<html>blocked</html>", status=503)):
-            result = main.search("test")
+            result = asyncio.run(main.search("test"))
 
         self.assertFalse(result["success"])
         self.assertEqual(result["results"], [])
