@@ -1036,7 +1036,7 @@ document.querySelectorAll("[data-more-target]").forEach(button=>{
     const alpha=tintAlpha();
     const darken=Math.max(0,0.40-(draft.brightness/100)*0.40);
     if(preview){
-      preview.style.background='linear-gradient(rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+'),rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+')),linear-gradient(rgba(0,0,0,'+darken.toFixed(3)+'),rgba(0,0,0,'+darken.toFixed(3)+')),url("Neon Cosmic Dreams ✨ Magical Galaxy Art.jpg") center/cover';
+      preview.style.background='linear-gradient(rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+'),rgba('+rgb.r+','+rgb.g+','+rgb.b+','+alpha.toFixed(3)+')),linear-gradient(rgba(0,0,0,'+darken.toFixed(3)+'),rgba(0,0,0,'+darken.toFixed(3)+')),url("image_78026e4b.jpg") center/cover';
     }
   }
   function loadSaved(){
