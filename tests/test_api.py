@@ -41,6 +41,32 @@ class BackendEndpointTests(unittest.IsolatedAsyncioTestCase):
         history = await main.get_chat_history("unit-test")
         self.assertEqual(len(history["messages"]), 2)
 
+    async def test_python_variable_question_gets_an_explanation(self):
+        result = await main.chat(main.ChatRequest(
+            message="Explain what a Python variable is and give me a simple example.",
+            sessionId="variable-test",
+        ))
+        self.assertTrue(result["success"])
+        self.assertIn("variable", result["reply"].lower())
+        self.assertIn("name =", result["reply"])
+        self.assertTrue(result["fallback"])
+
+    async def test_python_loop_question_gets_an_example(self):
+        result = await main.chat(main.ChatRequest(
+            message="Explain a Python for loop with an example.",
+            sessionId="loop-test",
+        ))
+        self.assertIn("range(1, 4)", result["reply"])
+        self.assertIn("loop", result["reply"].lower())
+
+    async def test_general_question_does_not_claim_to_be_full_ai(self):
+        result = await main.chat(main.ChatRequest(
+            message="What is the capital of France?",
+            sessionId="general-test",
+        ))
+        self.assertTrue(result["fallback"])
+        self.assertIn("language model", result["reply"].lower())
+
     async def test_delete_chat_history_clears_session(self):
         await main.chat(main.ChatRequest(message="hello", sessionId="delete-test"))
         result = await main.delete_chat_history("delete-test")
