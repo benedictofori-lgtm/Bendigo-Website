@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from html import unescape
+from html import escape, unescape
 from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.request import Request, urlopen
 import json
@@ -337,6 +337,7 @@ def make_reply(message: str) -> str:
 def code_template(language: str, prompt: str) -> str:
     lang = language.lower().strip()
     safe_prompt = prompt.replace("*/", "* /")[:300]
+    html_prompt = escape(safe_prompt)
     if lang in {"html", "html5"}:
         return f"""<!doctype html>
 <html lang="en">
@@ -348,7 +349,7 @@ def code_template(language: str, prompt: str) -> str:
 <body>
   <main>
     <h1>Bendigo AI</h1>
-    <p>{safe_prompt}</p>
+    <p>{html_prompt}</p>
   </main>
 </body>
 </html>"""
