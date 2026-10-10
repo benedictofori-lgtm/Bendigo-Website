@@ -115,10 +115,12 @@ class OllamaConfigurationTests(unittest.TestCase):
         import asyncio
 
         request = main.ChatRequest(message="Explain Python", sessionId="test-session")
-        with patch.object(main, "ai_configured", return_value=True), \\
-             patch.object(main, "ai_model_reply", side_effect=TimeoutError()), \\
-             patch.object(main, "db_get_history", return_value=[]), \\
-             patch.object(main, "db_add_messages") as save_messages:
+        with (
+            patch.object(main, "ai_configured", return_value=True),
+            patch.object(main, "ai_model_reply", side_effect=TimeoutError()),
+            patch.object(main, "db_get_history", return_value=[]),
+            patch.object(main, "db_add_messages") as save_messages,
+        ):
             result = asyncio.run(main.chat(request))
 
         self.assertTrue(result["success"])
@@ -132,11 +134,13 @@ class OllamaConfigurationTests(unittest.TestCase):
         import asyncio
 
         request = main.ChatRequest(message="Explain Python", sessionId="stream-session")
-        with patch.object(main, "ai_configured", return_value=True), \\
-             patch.object(main, "ollama_configured", return_value=True), \\
-             patch.object(main, "ai_model_reply", side_effect=TimeoutError()), \\
-             patch.object(main, "db_get_history", return_value=[]), \\
-             patch.object(main, "db_add_messages"):
+        with (
+            patch.object(main, "ai_configured", return_value=True),
+            patch.object(main, "ollama_configured", return_value=True),
+            patch.object(main, "ai_model_reply", side_effect=TimeoutError()),
+            patch.object(main, "db_get_history", return_value=[]),
+            patch.object(main, "db_add_messages"),
+        ):
             response = asyncio.run(main.chat_stream(request))
 
             async def read_body():
@@ -147,13 +151,15 @@ class OllamaConfigurationTests(unittest.TestCase):
 
             body = asyncio.run(read_body())
 
-        done_line = next(line[6:] for line in body.splitlines() if line.startswith("data: {") and '"fallback"' in line)
+        done_line = next(
+            line[6:] for line in body.splitlines()
+            if line.startswith("data: {") and '"fallback"' in line
+        )
         done = json.loads(done_line)
         self.assertTrue(done["fallback"])
         self.assertFalse(done["modelUsed"])
         self.assertTrue(done["modelError"])
         self.assertEqual(done["model"], "bendigo-backend")
-
 
 if __name__ == "__main__":
     unittest.main()
