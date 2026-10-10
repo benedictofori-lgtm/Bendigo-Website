@@ -143,6 +143,34 @@ def ai_configured() -> bool:
     return ai_gateway_configured() or ollama_configured()
 
 
+def probe_ollama() -> dict[str, Any]:
+    """Verify that a configured Ollama endpoint is reachable and has the selected model."""
+    if not ollama_configured():
+        return {"status": "not_configured", "reachable": False, "modelAvailable": False}
+    request = Request(
+        OLLAMA_BASE_URL + "/api/tags",
+        headers={"Accept": "application/json", "User-Agent": "Bendigo-AI"},
+        method="GET",
+    )
+    try:
+        with urlopen(request, timeout=4) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        models = data.get("models", [])
+        available = any(
+            isinstance(item, dict)
+            and str(item.get("name", "")).split(":")[0] == OLLAMA_MODEL.split(":")[0]
+            for item in models
+        )
+        return {
+            "status": "ready" if available else "model_missing",
+            "reachable": True,
+            "modelAvailable": available,
+        }
+    except Exception:
+        # Do not expose endpoint details, network errors, or credentials in a public status response.
+        return {"status": "unreachable", "reachable": False, "modelAvailable": False}
+
+
 def ai_model_reply(message: str, history: list[dict[str, Any]]):
     # The browser may include the current prompt in history and also send it
     # separately as message. Remove that trailing duplicate before appending it.
@@ -523,13 +551,29 @@ async def db_status():
 
 @app.get("/api/ai/status")
 async def ai_status():
+    ollama_status = probe_ollama() if ollama_configured() else {
+        "status": "not_configured", "reachable": False, "modelAvailable": False
+    }
+    if ollama_configured():
+        connection_status = ollama_status["status"]
+    elif ai_gateway_configured():
+        connection_status = "configured_not_verified"
+    else:
+        connection_status = "not_configured"
     return {
         "configured": ai_configured(),
+        "connectionStatus": connection_status,
+        "ollama": ollama_status,
         "provider": "ollama" if ollama_configured() else ("responses-api-compatible" if ai_gateway_configured() else None),
         "model": OLLAMA_MODEL if ollama_configured() else (AI_MODEL or None),
         "baseUrlConfigured": bool(OLLAMA_BASE_URL or AI_BASE_URL),
         "credentialConfigured": bool(AI_API_KEY),
         "browserSecretExposure": False,
+        "note": (
+            "A reachable Ollama server with the selected model is required."
+            if not ai_configured() or (ollama_configured() and ollama_status["status"] != "ready")
+            else "Configuration is present; successful generation is confirmed only by a chat request."
+        ),
     }
 
 
