@@ -318,35 +318,108 @@ def clean_html(value: str) -> str:
 
 
 def make_reply(message: str) -> str:
+    """Provide useful, honest built-in help when no language model is connected."""
     text = message.strip()
     lower = text.lower()
+    compact = re.sub(r"\s+", " ", lower).strip()
 
-    if lower in {"hello", "hi", "hey", "hello bendigo ai"}:
-        return "Hello! I'm Bendigo AI. Your backend is online and ready for coding, learning, project planning, GitHub work, and web search."
+    if compact in {"hello", "hi", "hey", "hello bendigo ai", "good morning", "good afternoon"}:
+        return "Hello! I'm Bendigo AI. I can help with beginner programming, project planning, and troubleshooting. Ask a specific question and I'll explain it step by step."
 
-    if lower in {"help", "what can you do", "what can you do?"}:
+    if compact in {"help", "what can you do", "what can you do?", "how can you help me?"}:
         return (
-            "I can help with HTML, CSS, JavaScript and Python code, explain programming concepts, "
-            "search the web, work with your GitHub workspace, plan projects, and manage Bendigo workspace data."
+            "I can explain common HTML, CSS, JavaScript, and Python concepts; give small examples; "
+            "help you plan projects; and troubleshoot errors you share. For open-ended questions, "
+            "live web research, and complex code generation, a connected language model is still needed."
         )
 
-    if "python" in lower:
-        return "I can help you build Python projects, explain errors, write functions, and structure a project safely. Tell me what you want to build."
+    if "variable" in compact and ("python" in compact or "program" in compact or "what is" in compact or "explain" in compact):
+        return (
+            "A variable is a name that refers to a value, so you can reuse that value in your program.\n\n"
+            "Example in Python:\n\n    name = \"Bendigo\"\n    age = 15\n    print(name)\n    print(age)\n\n"
+            "name refers to the text Bendigo, and age refers to the number 15. The equals sign assigns a value. "
+            "Choose variable names that describe the data they hold."
+        )
 
-    if any(word in lower for word in ("html", "css", "javascript", "js")):
-        return "I can help you build and debug HTML, CSS and JavaScript. Use Code Lab for a live browser preview, or describe the feature you want me to create."
+    if "for loop" in compact or "for-loop" in compact or ("loop" in compact and "python" in compact):
+        return (
+            "A loop repeats a block of code. A Python for loop is useful when you want to do something "
+            "for each item in a sequence.\n\nExample:\n\n    for number in range(1, 4):\n        print(number)\n\n"
+            "Output: 1, 2, 3. The stop value 4 is not included in range(1, 4)."
+        )
 
-    if "github" in lower:
-        write_state = "write access is enabled" if GITHUB_TOKEN else "read access is available; secure write access still needs to be configured on Render"
-        return f"Your Bendigo AI backend is connected to {GITHUB_REPO}. GitHub {write_state}."
+    if "function" in compact and ("python" in compact or "program" in compact or "what is" in compact or "explain" in compact):
+        return (
+            "A function is a reusable block of code that performs a task. In Python, define one with def.\n\n"
+            "    def greet(name):\n        return f\"Hello, {name}!\"\n\n    print(greet(\"Bendigo\"))\n\n"
+            "Here, name is a parameter, return sends the result back, and calling greet with Bendigo prints Hello, Bendigo!"
+        )
 
-    if "render" in lower or "backend" in lower:
-        return "The Bendigo backend is running on Render with FastAPI. Health, status, chat, search, code, and GitHub endpoints are available."
+    if "if statement" in compact or "conditional" in compact or ("if" in compact and "python" in compact and ("explain" in compact or "what is" in compact)):
+        return (
+            "An if statement lets a program choose what to do based on a condition.\n\n"
+            "    score = 75\n    if score >= 50:\n        print(\"Pass\")\n    else:\n        print(\"Try again\")\n\n"
+            "Python checks whether score is at least 50. Indentation shows which statements belong to each branch."
+        )
+
+    if "list" in compact and ("python" in compact or "what is" in compact or "explain" in compact):
+        return (
+            "A Python list stores multiple items in one ordered, changeable collection.\n\n"
+            "    subjects = [\"Maths\", \"English\", \"Computing\"]\n"
+            "    print(subjects[0])  # Maths\n    subjects.append(\"Science\")\n    print(subjects)\n\n"
+            "List indexes start at 0, so subjects[0] is the first item. append() adds an item to the end."
+        )
+
+    if "html" in compact and ("what is" in compact or "explain" in compact):
+        return (
+            "HTML defines the structure and meaning of a web page. Tags describe elements such as headings, "
+            "paragraphs, links, and buttons.\n\n"
+            "    <!doctype html>\n    <html lang=\"en\">\n    <head><meta charset=\"UTF-8\"><title>My page</title></head>\n"
+            "    <body>\n      <h1>Hello, Bendigo AI!</h1>\n      <p>This is my first web page.</p>\n    </body>\n    </html>\n\n"
+            "CSS controls appearance, while JavaScript adds behaviour."
+        )
+
+    if "css" in compact and ("what is" in compact or "explain" in compact):
+        return (
+            "CSS controls how HTML elements look and are laid out. For example:\n\n"
+            "    body {\n      font-family: Arial, sans-serif;\n      background: #f4f4f4;\n    }\n"
+            "    h1 {\n      color: #2457c5;\n    }\n\n"
+            "The body rule styles the page, and the h1 rule styles headings. CSS can live in a separate .css file."
+        )
+
+    if "javascript" in compact and ("what is" in compact or "explain" in compact):
+        return (
+            "JavaScript adds behaviour to web pages, such as responding to button clicks.\n\n"
+            "    document.getElementById(\"helloButton\").addEventListener(\"click\", () => {\n"
+            "        document.getElementById(\"message\").textContent = \"Hello from Bendigo AI!\";\n    });\n\n"
+            "This event listener runs the function when the button is clicked; the button and message elements must exist in the HTML."
+        )
+
+    if "error" in compact or "bug" in compact or "not working" in compact or "traceback" in compact:
+        return (
+            "I can help troubleshoot that. Please share the exact error message and the smallest relevant part of your code, "
+            "and tell me what you expected to happen. Remove passwords, API keys, and other private details first. "
+            "I'll help you check the likely cause step by step."
+        )
+
+    if any(word in compact for word in ("python", "html", "css", "javascript", "coding", "code", "program")):
+        return (
+            "I can help with this programming topic, but the full AI model is not connected right now, so I can't reliably "
+            "generate a complete custom solution from that request alone. Please tell me the exact goal, language, and any "
+            "error you see. For example: Write a Python calculator using two numbers."
+        )
+
+    if compact.endswith("?"):
+        return (
+            "I don't have a full language model connected yet, so I can't reliably answer every general question. "
+            "I can currently explain several beginner programming topics and help debug code. For a more complete answer, "
+            "Bendigo AI needs a reachable language-model service; this basic fallback is not the same as one."
+        )
 
     return (
-        "I received your message. Bendigo's backend is online. For full ChatGPT/Gemini-style answers, "
-        "the remaining backend component is a hosted language model; the API is structured so that model "
-        "can be connected server-side without exposing credentials to the browser."
+        "I received your message. I can currently help with a few common programming explanations and debugging guidance, "
+        "but a full language model is not connected, so my answers to other topics are limited. Try asking about a Python "
+        "variable, loop, function, list, HTML, CSS, or JavaScript, or share a coding error."
     )
 
 
