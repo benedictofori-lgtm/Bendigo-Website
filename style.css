@@ -919,3 +919,51 @@ body.sidebar-collapsed .app{grid-template-columns:72px 1fr}body.sidebar-collapse
 .search-result-content strong{font-size:14px}
 .search-result-content small{font-size:11px;opacity:.58;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .search-result-content p{margin:2px 0 0;font-size:12px;line-height:1.5;opacity:.72}
+
+/* Final background fix: uploaded image + moving layers */
+body::before{
+  content:"";
+  display:block;
+  position:fixed;
+  z-index:0;
+  width:145vmax;
+  height:145vmax;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  transform-origin:center center;
+  background-image:url("556687203956557153.jfif");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  animation:bendigoBackgroundRotate 90s linear infinite;
+  opacity:.96;
+  filter:saturate(1.12) brightness(.9);
+  pointer-events:none;
+}
+body::after{
+  content:"";
+  display:block;
+  position:fixed;
+  inset:0;
+  z-index:1;
+  background:
+    radial-gradient(ellipse at 18% 28%,rgba(63,107,255,.17),transparent 34%),
+    radial-gradient(ellipse at 82% 70%,rgba(129,74,255,.13),transparent 38%),
+    linear-gradient(180deg,rgba(0,4,15,.18),rgba(0,5,18,.34));
+  background-size:140% 140%,140% 140%,100% 100%;
+  animation:bendigoBackgroundGlow 22s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.app{position:relative;z-index:2}
+@keyframes bendigoBackgroundRotate{
+  from{transform:translate(-50%,-50%) rotate(0deg)}
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+@keyframes bendigoBackgroundGlow{
+  0%{background-position:0% 20%,100% 80%,center}
+  100%{background-position:100% 80%,0% 20%,center}
+}
+@media(prefers-reduced-motion:reduce){
+  body::before,body::after{animation:none!important}
+}
