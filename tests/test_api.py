@@ -24,6 +24,11 @@ class BackendEndpointTests(unittest.IsolatedAsyncioTestCase):
             item.start()
             self.addCleanup(item.stop)
 
+    async def test_root_route_accepts_head_for_platform_checks(self):
+        root_route = next(route for route in main.app.routes if getattr(route, "path", None) == "/")
+        self.assertIn("GET", root_route.methods)
+        self.assertIn("HEAD", root_route.methods)
+
     async def test_health_reports_core_services_without_network_call(self):
         with patch.object(main, "github_repository_accessible", return_value=True):
             result = await main.health()
