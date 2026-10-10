@@ -135,7 +135,7 @@ async function requestChatReply(message, history) {
 
         for (const rawEvent of events) {
           const dataLines = rawEvent.split("\n").filter(line => line.startsWith("data: "));
-          const eventName = (rawEvent.match(/^event:\\s*(.+)$/m) || [,""])[1];
+          const eventName = (rawEvent.match(/^event:\s*(.+)$/m) || [,""])[1];
           const data = dataLines.map(line => line.slice(6)).join("\n");
           if (eventName === "token") {
             aiMessage.textContent += data;
