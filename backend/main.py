@@ -274,6 +274,22 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def github_repository_accessible() -> bool:
+    """Check public repository access without requiring a write token."""
+    request = Request(
+        "https://api.github.com/repos/" + GITHUB_REPO,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "Bendigo-AI",
+        },
+    )
+    try:
+        with urlopen(request, timeout=4) as response:
+            return 200 <= getattr(response, "status", 200) < 300
+    except Exception:
+        return False
+
+
 def github_request(method: str, path: str, payload: dict | None = None):
     if not GITHUB_TOKEN:
         raise RuntimeError("GitHub write access is not configured on the server.")
@@ -404,7 +420,7 @@ async def health():
             "type": "postgresql" if database_configured() else "memory-fallback",
         },
         "github": {
-            "connected": True,
+            "connected": github_repository_accessible(),
             "writeEnabled": bool(GITHUB_TOKEN),
             "repository": GITHUB_REPO,
         },
@@ -626,11 +642,14 @@ async def code(request: CodeRequest):
 
 @app.get("/api/github/status")
 async def github_status():
+    connected = github_repository_accessible()
     return {
-        "connected": True,
+        "connected": connected,
         "repository": GITHUB_REPO,
         "branch": "main",
+        "readAccess": connected,
         "writeEnabled": bool(GITHUB_TOKEN),
+        "writeAccessConfigured": bool(GITHUB_TOKEN),
     }
 
 
