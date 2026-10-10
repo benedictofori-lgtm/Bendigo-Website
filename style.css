@@ -246,14 +246,15 @@ body::before{
   left:0;
   top:0;
   transform:none;
-  background-image:url("image_78026e4b.jpg");
+  background-image:url("556687203956557153.jfif");
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
-  animation:none;
+  animation:spaceRotate 50s linear infinite;
+  transform-origin:center center;
 }
 body::after{
-  background:linear-gradient(180deg,rgba(0,4,15,.28),rgba(0,5,18,.42));
+  background:linear-gradient(180deg,rgba(0,4,15,.18),rgba(0,5,18,.30));
 }
 
 
@@ -677,9 +678,8 @@ body{display:block;overflow-x:hidden;overflow-y:auto;padding:0}
 }
 
 
-/* Uploaded image_78026e4b background */
-html,body{background:#050014 url("./image_78026e4b.jpg") center top/cover fixed no-repeat !important;}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(5,0,20,.18);}
+/* Uploaded background image; keep the image layer visible and rotating */
+html,body{background:#050014 !important;}
 .app,.main-chat{background:transparent !important;}
 
 
