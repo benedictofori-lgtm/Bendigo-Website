@@ -847,7 +847,8 @@ async def github_pr(request: GithubPullRequestRequest):
             f"/repos/{GITHUB_REPO}/pulls",
             {"title": title, "head": branch, "base": "main", "body": request.body.strip()},
         )
-        return {"success": True, "number": pr.get("number"), "url": pr.get("html_url"), "title": pr.get("title")}    except Exception as exc:
+        return {"success": True, "number": pr.get("number"), "url": pr.get("html_url"), "title": pr.get("title")}
+    except Exception as exc:
         return github_write_error(exc)
 
 
